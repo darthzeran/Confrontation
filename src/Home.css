@@ -1,0 +1,405 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.game-home {
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+    overflow: hidden;
+    position: relative;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Banner Styles */
+.game-banner {
+    position: relative;
+    background: linear-gradient(90deg,
+    rgba(20, 30, 48, 0.95) 0%,
+    rgba(36, 59, 85, 0.95) 50%,
+    rgba(20, 30, 48, 0.95) 100%);
+    padding: 1.5rem 2rem;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+    border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+    z-index: 10;
+    backdrop-filter: blur(10px);
+}
+
+.banner-content {
+    text-align: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.banner-title {
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    background: linear-gradient(90deg, #FFD700, #FFA500, #FF8C00);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.banner-subtitle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+}
+
+.good-text {
+    color: #34c33f;
+    text-shadow: 0 0 15px rgba(79, 195, 247, 0.5);
+    font-weight: bold;
+}
+
+.evil-text {
+    color: #ff5252;
+    text-shadow: 0 0 15px rgba(255, 82, 82, 0.5);
+    font-weight: bold;
+}
+
+.vs {
+    color: #fff;
+    font-size: 0.8em;
+    opacity: 0.7;
+}
+
+/* Main Content */
+.game-main {
+    height: calc(100vh - 120px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modal {
+    background: linear-gradient(135deg,
+    rgba(30, 30, 46, 0.95) 0%,
+    rgba(40, 40, 60, 0.95) 100%);
+    border-radius: 20px;
+    padding: 3rem;
+    max-width: 600px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(255, 215, 0, 0.1),
+    inset 0 0 20px rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    animation: modalSlideUp 0.6s ease;
+}
+
+@keyframes modalSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-header {
+    text-align: center;
+    margin-bottom: 3rem;
+
+    .joinMatchDiv{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        #joinMatchId{
+            font-size: 1.3rem;
+        }
+        #joinMatchBtn{
+            font-size: 1.3rem;
+        }
+    }
+}
+
+.modal-title {
+    color: #fff;
+    font-size: clamp(1.8rem, 3vw, 2.5rem);
+    margin-bottom: 0.5rem;
+    background: linear-gradient(90deg, #fff, #FFD700);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Choice Buttons */
+.choice-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.choice-btn {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1.5rem 2rem;
+    border: none;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: left;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    position: relative;
+    overflow: hidden;
+}
+
+.choice-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.6s ease;
+}
+
+.choice-btn:hover::before {
+    left: 100%;
+}
+
+.choice-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.good-btn {
+    border: 2px solid rgba(82, 315, 107, 0.3);
+}
+
+.good-btn:hover {
+    background: rgba(79, 315, 107, 0.1);
+    border-color: rgba(79, 315, 107, 0.6);
+}
+
+.evil-btn {
+    border: 2px solid rgba(255, 82, 82, 0.3);
+}
+
+.evil-btn:hover {
+    background: rgba(255, 82, 82, 0.1);
+    border-color: rgba(255, 82, 82, 0.6);
+}
+
+.choice-btn.selected {
+    transform: scale(1.02);
+}
+
+.good-btn.selected {
+    background: rgba(79, 195, 247, 0.15);
+    border-color: #34c33f;
+    box-shadow: 0 0 30px rgba(79, 195, 247, 0.4);
+}
+
+.evil-btn.selected {
+    background: rgba(255, 82, 82, 0.15);
+    border-color: #ff5252;
+    box-shadow: 0 0 30px rgba(255, 82, 82, 0.4);
+}
+
+.choice-icon {
+    font-size: 2.5rem;
+}
+
+.choice-content h3 {
+    font-size: 1.8rem;
+    margin-bottom: 0.3rem;
+}
+
+.good-btn .choice-content h3 {
+    color: #34c33f;
+}
+
+.evil-btn .choice-content h3 {
+    color: #ff5252;
+}
+
+.choice-content p {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+}
+
+/* OR Divider */
+.or-divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 0.5rem 0;
+}
+
+.or-divider::before,
+.or-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+}
+
+.or-divider span {
+    padding: 0 1rem;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+/* Choice Feedback */
+.choice-feedback {
+    text-align: center;
+    margin-top: 2rem;
+    animation: fadeIn 0.5s ease;
+}
+
+.choice-message {
+    color: #fff;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+}
+
+.choice-message strong {
+    color: #FFD700;
+}
+
+.loading-dots {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #FFD700;
+    animation: pulse 1.5s infinite ease-in-out;
+}
+
+.dot:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.dot:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.3; transform: scale(0.8); }
+    50% { opacity: 1; transform: scale(1); }
+}
+
+
+@keyframes float {
+    0%, 100% { transform: rotate(-45deg) translateY(0); }
+    50% { transform: rotate(-45deg) translateY(-10px); }
+}
+
+/* Background Elements */
+.background-elements {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: -1;
+}
+
+.light-side,
+.dark-side {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 50%;
+    opacity: 0.1;
+}
+
+.light-side {
+    left: 0;
+    background: radial-gradient(circle at 30% 50%, #34c33f, transparent 70%);
+}
+
+.dark-side {
+    right: 0;
+    background: radial-gradient(circle at 70% 50%, #ff5252, transparent 70%);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .game-banner {
+        padding: 1rem;
+    }
+
+    .modal {
+        padding: 2rem;
+        width: 95%;
+    }
+
+    .choice-container {
+        gap: 1rem;
+    }
+
+    .choice-btn {
+        padding: 1.2rem;
+        flex-direction: column;
+        text-align: center;
+        gap: 0.8rem;
+    }
+
+    .choice-icon {
+        font-size: 2rem;
+    }
+
+    .or-divider {
+        margin: 0.5rem 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .modal {
+        padding: 1.5rem;
+    }
+
+    .modal-title {
+        font-size: 1.5rem;
+    }
+
+    .choice-content h3 {
+        font-size: 1.5rem;
+    }
+}
