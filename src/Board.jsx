@@ -18,9 +18,6 @@ function getIsGood(id) {
 }
 
 export function ConfrontationBoard({ctx, G, moves, playerID, matchID}) {
-    {
-        console.log(G)
-    }
     useEffect(() => {
         if (G.messages?.length > 0) {
             toast.success(<div dangerouslySetInnerHTML={{__html: G.messages.join('<br />')}}/>)
