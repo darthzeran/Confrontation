@@ -9,7 +9,7 @@ import {
     GOOD_CHARS,
     GOOD_INDEXES,
     GOOD_SPECIAL_CARDS
-} from './consts'
+} from './vconsts'
 import {PIECE_IMAGES} from './imgs'
 import {toast} from 'react-toastify'
 
