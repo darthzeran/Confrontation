@@ -8,7 +8,7 @@ import {
     GOOD_CHARS,
     GOOD_SPECIAL_CARDS,
     LOCATIONS
-} from './consts.js'
+} from './vconsts.js'
 
 function isSpecifiedPlayerGood(id) {
     return id === '1'
@@ -238,10 +238,10 @@ function calculateGoodPreBattle({G, attacker, defender, selectedTile}) {
     } else if (goodUnit.id === 'SMEAGOL' && !attackerIsGood) {
         const swapOptions = findSwapCandidates(G, selectedTile)
         if (swapOptions.length > 0) {
-            abilities.push(['SWAP'])
+            abilities.push('SWAP')
         }
     } else if (goodUnit.id === 'ARAGORN') {
-        abilities.push(['CARD-FREE'])
+        abilities.push('CARD-FREE')
     }
     if (G.players['1'].specialCards?.find?.(card => card.id === 4)) {
         // check locations - add retreat option
@@ -549,6 +549,9 @@ function endBattleLogic({G, events, ctx}) {
 function resetAllCharValues(G) {
     // Gandalf can edit anyone, so account for that
     Object.values(GOOD_CHARS).forEach(char => {
+        G.characters[char.id].value = char.value
+    })
+    Object.values(EVIL_CHARS).forEach(char => {
         G.characters[char.id].value = char.value
     })
 }
@@ -1008,7 +1011,7 @@ function moveCharLogic({G, tileId, events, playerID, endTurn = true}) {
     }
 }
 
-export const Confrontation = {
+export const ConfrontationVariant = {
     name: 'ConfrontationVariant',
     setup: () => {
         return {
