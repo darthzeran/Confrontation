@@ -5,13 +5,13 @@ import {ToastContainer, Zoom} from 'react-toastify';
 import {Client} from 'boardgame.io/react'
 import {SocketIO} from 'boardgame.io/multiplayer'
 
-import {Confrontation} from './Game'
+import {ConfrontationVariant} from './Game'
 import {ConfrontationBoard} from './Board'
 
 const isProd = true
 
 const ConfrontationClient = Client({
-    game: Confrontation,
+    game: ConfrontationVariant,
     board: ConfrontationBoard,
     multiplayer: SocketIO({
         server: isProd ? 'https://confrontationserver.onrender.com' : 'localhost:1234',
