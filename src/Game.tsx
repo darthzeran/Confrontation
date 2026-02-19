@@ -1,5 +1,3 @@
-import { INVALID_MOVE } from 'boardgame.io/core'
-// const INVALID_MOVE = undefined
 import {
     EVIL_CARDS,
     EVIL_CHARS,
@@ -8,13 +6,18 @@ import {
     GOOD_CHARS,
     GOOD_SPECIAL_CARDS,
     LOCATIONS
-} from './vconsts.js'
+} from './vconsts.ts'
+import {Character, CharacterMap, Location, GState, SpecialCard, BattleCard} from './types';
+import {INVALID_MOVE} from 'boardgame.io/core'
 
-function isSpecifiedPlayerGood(id) {
+// const INVALID_MOVE = undefined
+
+
+function isSpecifiedPlayerGood(id: string) {
     return id === '1'
 }
 
-function isValidTeamTile(isGood, tile) {
+function isValidTeamTile(isGood: boolean, tile: Location) {
     if (isGood) {
         return tile.id > 9
     } else {
@@ -22,7 +25,22 @@ function isValidTeamTile(isGood, tile) {
     }
 }
 
-function getSpecialCharPossibleMoves(charId, selectedTile, G, opposingTeam) {
+function getTile(G: GState, tileId: string): Location {
+    return {...G.regions[tileId]}
+}
+
+function getChar(G: GState, charId: string): Character {
+    return {...G.characters[charId]}
+}
+
+function findCharTile(G:GState, charId: string): Location {
+    const tiles = [...Object.values(G.regions)]
+    const charTile = tiles.find((region: Location) => region.currentOccupants.includes(charId))
+    return charTile ? {...charTile} : null
+}
+
+// todo
+function getSpecialCharPossibleMoves(charId: string, selectedTile: Location, G: GState, opposingTeam: CharacterMap): string[] {
     if (charId === 'TREEBEARD') {
         const fangornOccupants = G.regions['FANGORN'].currentOccupants || []
         const validTarget = fangornOccupants.length === 1 && opposingTeam[fangornOccupants[0]]
@@ -73,7 +91,12 @@ function getSpecialCharPossibleMoves(charId, selectedTile, G, opposingTeam) {
     return []
 }
 
-function generateMoves({G, playerID, selectedChar, selectedTile}) {
+function generateMoves({G, playerID, selectedChar, selectedTile}: {
+    G: GState,
+    playerID: string,
+    selectedChar: Character | { id: string },
+    selectedTile: Location
+}) {
     if (selectedChar.id === 'WATCHER' && G.characters['WATCHER'].permaReveal) {
         return []
     }
@@ -109,7 +132,12 @@ function generateMoves({G, playerID, selectedChar, selectedTile}) {
     return [...validMoves, ...additionalMoves]
 }
 
-function generateRetreatMoves({G, isGood, selectedChar, selectedTile}) {
+function generateRetreatMoves({G, isGood, selectedChar, selectedTile}: {
+    G: GState,
+    isGood: boolean,
+    selectedChar: Character | { id?: string },
+    selectedTile: Location
+}) {
     const validRetreatMoves = []
     const sameTeam = isGood ? GOOD_CHARS : EVIL_CHARS
 
@@ -149,7 +177,7 @@ function generateRetreatMoves({G, isGood, selectedChar, selectedTile}) {
     return validRetreatMoves
 }
 
-function shuffle(array) {
+function shuffle(array: string[]): string[] {
     let arr = [...array]
     let currentIndex = arr.length
 
@@ -166,7 +194,7 @@ function shuffle(array) {
     return arr
 }
 
-function isGameOver(G) {
+function isGameOver(G: GState): string | null {
     const mordor = G.regions['MORDOR']
     const shire = G.regions['SHIRE']
 
@@ -181,6 +209,7 @@ function isGameOver(G) {
     if (shire.currentOccupants?.includes?.('WITCHKING')) {
         return '0'
     }
+
     if (
         shire.currentOccupants.length === 3 &&
         shire.currentOccupants.every((name) => EVIL_CHARS[name])
@@ -191,12 +220,12 @@ function isGameOver(G) {
     return null
 }
 
-function updateHistory(G, msg) {
+function updateHistory(G: GState, msg: string) {
     G.history.push(msg)
     G.messages.push(msg)
 }
 
-function findSwapCandidates(G, selectedTile) {
+function findSwapCandidates(G: GState, selectedTile: Location): string[] {
     const swappers = {}
 
     // if no other ally in region
@@ -217,7 +246,13 @@ function findSwapCandidates(G, selectedTile) {
     return Object.keys(swappers)
 }
 
-function calculateGoodPreBattle({G, attacker, defender, selectedTile}) {
+// todo
+function calculateGoodPreBattle({G, attacker, defender, selectedTile}: {
+    G: GState,
+    attacker: Character,
+    defender: Character,
+    selectedTile: Location
+}): string[] {
     const attackerIsGood = Boolean(GOOD_CHARS[attacker.id])
 
     const goodUnit = attackerIsGood ? attacker : defender
@@ -260,7 +295,13 @@ function calculateGoodPreBattle({G, attacker, defender, selectedTile}) {
     return abilities
 }
 
-function calculateEvilPreBattle({G, attacker, defender, selectedTile}) {
+// todo
+function calculateEvilPreBattle({G, attacker, defender, selectedTile}: {
+    G: GState,
+    attacker: Character,
+    defender: Character,
+    selectedTile: Location,
+}): string[] {
     const attackerIsGood = Boolean(GOOD_CHARS[attacker.id])
     const evilUnit = attackerIsGood ? defender : attacker
     const goodUnit = attackerIsGood ? attacker : defender
@@ -294,64 +335,73 @@ const MOUNTAIN_SIDEWAYS = {
     'GAPROHAN': ['CARADHRAS'],
 }
 
-function isGandalfNearby({G}) {
+function isGandalfNearby(G: GState): boolean {
     if (G.characters['GANDALF'].defeated) {
         return false
     }
 
-    const gandalfTile = [...Object.values(G.regions)].find(region => region.currentOccupants.includes('GANDALF'))
+    const gandalfTile = findCharTile(G, 'GANDALF')
     const gTileDir = gandalfTile.directions
     const adjTiles = [gandalfTile.title, ...gTileDir.UP, ...gTileDir.DOWN, ...gTileDir.SIDEWAYS, ...(MOUNTAIN_SIDEWAYS[gandalfTile.title] || [])]
-    return adjTiles.some(tile => tile === G.attackedTile.title)
+    return adjTiles.some(tile => tile === G.attackedTile)
 }
 
-function removeCharacter({G, defeatedUnitId}) {
+
+function defeatCharacter({G, defeatedUnitId}: { G: GState, defeatedUnitId: string }) {
     G.characters[defeatedUnitId].defeated = true
-    const newOccupantsList = shuffle([
-        ...G.attackedTile.currentOccupants.filter((name) => name !== defeatedUnitId),
-    ])
-    G.attackedTile.currentOccupants = newOccupantsList
-    G.regions[G.attackedTile.title].currentOccupants = newOccupantsList
+    removeCharacter({G, unitIdToRemove: defeatedUnitId, tileId: G.attackedTile})
 }
 
-function processCustomStrengths(G) {
-    const attackerIsGood = Boolean(GOOD_CHARS[G.attackingChar.id])
+function removeCharacter({G, unitIdToRemove, tileId}: { G: GState, unitIdToRemove: string, tileId: string }) {
+    G.regions[tileId].currentOccupants = shuffle([
+        ...G.regions[tileId].currentOccupants.filter((name) => name !== unitIdToRemove),
+    ])
+}
 
-    if (G.attackingChar.id === 'ORCS') {
+function addCharacter({G, unitIdToAdd, tileId}: { G: GState, unitIdToAdd: string, tileId: string }) {
+    G.regions[tileId].currentOccupants = shuffle([
+        ...G.regions[tileId].currentOccupants,
+        unitIdToAdd,
+    ])
+}
+
+function hideCharacters(G: GState) {
+    Object.keys(G.characters).forEach((name) => {
+        if (!G.characters[name].permaReveal) {
+            G.characters[name].reveal = false
+        }
+    })
+}
+
+function processCustomStrengths(G: GState) {
+    if (G.attackingChar === 'ORCS') {
         G.characters['ORCS'].value = 6
-        G.attackingChar.value = 6
     }
     if (G.regions['GONDOR'].currentOccupants.includes('THEODEN') || G.regions['ROHAN'].currentOccupants.includes('THEODEN')) {
         G.characters['THEODEN'].value = 4
-        if (attackerIsGood) {
-            G.attackingChar.value = 4
-        } else {
-            G.defendingChar.value = 4
-        }
     }
     if (G.regions['FANGORN'].currentOccupants.includes('TREEBEARD')) {
         G.characters['TREEBEARD'].value = 6
-        if (attackerIsGood) {
-            G.attackingChar.value = 6
-        } else {
-            G.defendingChar.value = 6
-        }
     }
-    if (G.defendingChar.id === 'SAM') {
-        G.characters['SAM'].value = G.attackingChar.value
-        G.defendingChar.value = G.attackingChar.value
+    if (G.defendingChar === 'SAM') {
+        const attacker = getChar(G, G.attackingChar)
+        G.characters['SAM'].value = attacker.value
     }
 }
 
-function processPreGoodActionStage({G, events, playerID, ctx}) {
+function processPreGoodActionStage({G, events, playerID, ctx}: { G: GState, events: any, ctx: any, playerID: string }) {
     // process new strengths
+    // TODO verify this is in right palce?
+    // OR TODO check if thisshould call reset right before it just in case
+
+    // resetAllCharValues(G)
     processCustomStrengths(G)
 
     const goodOptions = calculateGoodPreBattle({
         G,
-        attacker: G.attackingChar,
-        defender: G.defendingChar,
-        selectedTile: G.attackedTile,
+        attacker: getChar(G, G.attackingChar),
+        defender: getChar(G, G.defendingChar),
+        selectedTile: getTile(G, G.attackedTile),
     })
 
     if (goodOptions.length > 0) {
@@ -367,14 +417,14 @@ function processPreGoodActionStage({G, events, playerID, ctx}) {
     }
 }
 
-function processPreBadActionStage({G, playerID, events, ctx}) {
+function processPreBadActionStage({G, playerID, events, ctx}: { G: GState, events: any, ctx: any, playerID: string }) {
     G.goodActions = null
 
     const badOptions = calculateEvilPreBattle({
         G,
-        attacker: G.attackingChar,
-        defender: G.defendingChar,
-        selectedTile: G.attackedTile,
+        attacker: getChar(G, G.attackingChar),
+        defender: getChar(G, G.defendingChar),
+        selectedTile: getTile(G, G.attackedTile),
     })
 
     if (badOptions.length === 0) {
@@ -385,11 +435,11 @@ function processPreBadActionStage({G, playerID, events, ctx}) {
         })
     } else {
         if (badOptions[0] === 'WIN') {
-            const attackerIsGood = Boolean(GOOD_CHARS[G.attackingChar.id])
-            const goodUnit = attackerIsGood ? G.attackingChar : G.defendingChar
+            const attackerIsGood = Boolean(GOOD_CHARS[G.attackingChar])
+            const goodUnitId = attackerIsGood ? G.attackingChar : G.defendingChar
 
             // remove defeated char
-            removeCharacter({G, defeatedUnitId: goodUnit.id})
+            defeatCharacter({G, defeatedUnitId: goodUnitId})
             startBattleLogic({G, playerID, events, ctx})
         } else {
             // show evil options
@@ -401,13 +451,13 @@ function processPreBadActionStage({G, playerID, events, ctx}) {
     }
 }
 
-function checkCanWormTongueEscape({G}) {
-    if (!G.attackedTile || !G.attackingChar?.id || !G.defendingChar?.id) {
+function checkCanWormTongueEscape(G: GState) {
+    if (!G.attackedTile || !G.attackingChar || !G.defendingChar) {
         return false
     }
 
     // make sure Grima has a chance to escape
-    const players = [G.attackingChar.id, G.defendingChar.id]
+    const players = [G.attackingChar, G.defendingChar]
     if (
         players.includes('WORMTONGUE')
         && G.characters['WORMTONGUE'].defeated
@@ -417,7 +467,7 @@ function checkCanWormTongueEscape({G}) {
             G,
             isGood: false,
             selectedChar: {id: 'WORMTONGUE'},
-            selectedTile: G.attackedTile
+            selectedTile: getTile(G, G.attackedTile)
         })
         if (retreatMoves.length > 0) {
             return true
@@ -429,12 +479,12 @@ function checkCanWormTongueEscape({G}) {
     return false
 }
 
-function wormTongueCheck({G, events, location}) {
+function wormTongueCheck({G, events, location}:{G:GState, events: any, location: string}) {
     G.validMoves = generateRetreatMoves({
         G,
         isGood: false,
         selectedChar: {id: 'WORMTONGUE'},
-        selectedTile: G.attackedTile
+        selectedTile: getTile(G, G.attackedTile)
     })
     G.grimaCallback = location
     events.setActivePlayers({
@@ -442,19 +492,14 @@ function wormTongueCheck({G, events, location}) {
     })
 }
 
-function startBattleLogic({G, playerID, events, ctx}) {
+function startBattleLogic({G, playerID, events, ctx}: { G: GState, events: any, ctx: any, playerID: string }) {
     // hide all characters because we can
-    Object.keys(G.characters).forEach((name) => {
-        if (!G.characters[name].permaReveal) {
-            G.characters[name].reveal = false
-        }
-    })
+    hideCharacters(G)
 
     // make sure Grima has a chance to escape
-    if (checkCanWormTongueEscape({G})) {
+    if (checkCanWormTongueEscape(G)) {
         wormTongueCheck({G, events, location: 'start'})
     } else {
-
         // ensure cards are reset
         G.goodCard = null
         G.evilCard = null
@@ -468,7 +513,7 @@ function startBattleLogic({G, playerID, events, ctx}) {
             updateHistory(G, 'The ring was lost - Sauron wins!')
             events.endGame({winner: '0'})
         } else {
-            const battleTile = G.attackedTile
+            const battleTile = getTile(G, G.attackedTile)
             if (battleTile.currentOccupants.length > 2) {
                 // wait for player to choose opponent
                 G.battle = {[ctx.currentPlayer]: 'choose'}
@@ -487,13 +532,15 @@ function startBattleLogic({G, playerID, events, ctx}) {
                     if (name === 'WATCHER') {
                         G.characters[name].permaReveal = true
                     }
-                    if (name !== G.attackingChar.id) {
-                        G.defendingChar = G.characters[name]
+                    if (name !== G.attackingChar) {
+                        G.defendingChar = name
                     }
                 })
 
+                const attacker = getChar(G, G.attackingChar)
+                const defender = getChar(G, G.defendingChar)
                 updateHistory(G,
-                    `The battle between ${G.attackingChar.name} and ${G.defendingChar.name} in ${battleTile.description} commences`,
+                    `The battle between ${attacker.name} and ${defender.name} in ${battleTile.description} commences`,
                 )
 
                 // do instantaneous abilities
@@ -503,14 +550,9 @@ function startBattleLogic({G, playerID, events, ctx}) {
     }
 }
 
-function endBattleLogic({G, events, ctx}) {
+function endBattleLogic({G, events, ctx}: { G: GState, events: any, ctx: any, }) {
     // hide all characters because we can
-    Object.keys(G.characters).forEach((name) => {
-        if (!G.characters[name].permaReveal) {
-            G.characters[name].reveal = false
-        }
-    })
-
+    hideCharacters(G)
     // reset character values
     resetAllCharValues(G)
 
@@ -519,7 +561,7 @@ function endBattleLogic({G, events, ctx}) {
         events.endGame({winner: '0'})
     } else {
         // make sure Grima has a chance to escape
-        if (checkCanWormTongueEscape({G})) {
+        if (checkCanWormTongueEscape(G)) {
             wormTongueCheck({G, events, location: 'end'})
         } else {
             G.attackingChar = null
@@ -546,7 +588,7 @@ function endBattleLogic({G, events, ctx}) {
     }
 }
 
-function resetAllCharValues(G) {
+function resetAllCharValues(G:GState) {
     // Gandalf can edit anyone, so account for that
     Object.values(GOOD_CHARS).forEach(char => {
         G.characters[char.id].value = char.value
@@ -556,25 +598,22 @@ function resetAllCharValues(G) {
     })
 }
 
-function goodRetreatLogic({G, playerID, events, ctx, retreatMove}) {
+function goodRetreatLogic({G, playerID, events, ctx, retreatMove}: {
+    G: GState, events: any, ctx: any,
+    playerID: string,
+    retreatMove: string
+}) {
     // actions are null, we chose to retreat
     G.goodActions = null
 
-    const attackerIsGood = Boolean(GOOD_CHARS[G.attackingChar.id])
-    const goodUnit = attackerIsGood ? G.attackingChar : G.defendingChar
+    const attackerIsGood = Boolean(GOOD_CHARS[G.attackingChar])
+    const goodUnitId = attackerIsGood ? G.attackingChar : G.defendingChar
 
     // leave current tile
-    const newOccupantsList = shuffle([
-        ...G.attackedTile.currentOccupants.filter((name) => name !== goodUnit.id),
-    ])
-    G.attackedTile.currentOccupants = newOccupantsList
-    G.regions[G.attackedTile.title].currentOccupants = newOccupantsList
+    removeCharacter({G, unitIdToRemove: goodUnitId, tileId: G.attackedTile})
 
     // go to new tile
-    G.regions[retreatMove].currentOccupants = shuffle([
-        ...G.regions[retreatMove].currentOccupants,
-        goodUnit.id,
-    ])
+    addCharacter({G, tileId: retreatMove, unitIdToAdd: goodUnitId})
 
     if (attackerIsGood) {
         endBattleLogic({G, events, ctx})
@@ -585,23 +624,21 @@ function goodRetreatLogic({G, playerID, events, ctx, retreatMove}) {
     }
 }
 
-function evilRetreatLogic({G, playerID, events, ctx, retreatMove}) {
-    const attackerIsGood = Boolean(GOOD_CHARS[G.attackingChar.id])
-    const evilUnit = attackerIsGood ? G.defendingChar : G.attackingChar
+function evilRetreatLogic({G, playerID, events, ctx, retreatMove}: {
+    G: GState, events: any, ctx: any,
+    playerID: string,
+    retreatMove: string
+}) {
+    const attackerIsGood = Boolean(GOOD_CHARS[G.attackingChar])
+    const evilUnitId = attackerIsGood ? G.defendingChar : G.attackingChar
 
     // leave current tile
-    const newOccupantsList = shuffle([
-        ...G.attackedTile.currentOccupants.filter((name) => name !== evilUnit.id),
-    ])
-    G.attackedTile.currentOccupants = newOccupantsList
-    G.regions[G.attackedTile.title].currentOccupants = newOccupantsList
+    removeCharacter({G, unitIdToRemove: evilUnitId, tileId: G.attackedTile})
 
     // go to new tile
-    G.regions[retreatMove].currentOccupants = shuffle([
-        ...G.regions[retreatMove].currentOccupants,
-        evilUnit.id,
-    ])
+    addCharacter({G, tileId: retreatMove, unitIdToAdd: evilUnitId})
 
+    // TODO check special logic AND card logic
     if (attackerIsGood) {
         G.defendingChar = null
         // check to see if we battle again
@@ -611,12 +648,12 @@ function evilRetreatLogic({G, playerID, events, ctx, retreatMove}) {
     }
 }
 
-function processGoodRetreat({G, events, ctx, playerID}) {
+function processGoodRetreat({G, events, ctx, playerID}: { G: GState, events: any, ctx: any, playerID: string }): boolean {
     const goodRetreatMoves = generateRetreatMoves({
         G,
         isGood: true,
-        selectedChar: {},
-        selectedTile: G.attackedTile,
+        selectedChar: {id: null},
+        selectedTile: getTile(G, G.attackedTile),
     })
     if (goodRetreatMoves.length === 1) {
         updateHistory(G, 'Good retreats to ' + goodRetreatMoves[0])
@@ -642,12 +679,12 @@ function processGoodRetreat({G, events, ctx, playerID}) {
     return false
 }
 
-function processEvilRetreat({G, events, ctx, playerID}) {
+function processEvilRetreat({G, events, ctx, playerID}: { G: GState, events: any, ctx: any, playerID: string }) {
     const evilRetreatMoves = generateRetreatMoves({
         G,
         isGood: false,
-        selectedChar: {},
-        selectedTile: G.attackedTile,
+        selectedChar: {id: null},
+        selectedTile: getTile(G, G.attackedTile),
     })
 
     if (evilRetreatMoves.length === 1) {
@@ -673,8 +710,8 @@ function processEvilRetreat({G, events, ctx, playerID}) {
     return false
 }
 
-function processPostCardActions({G, playerID, events, ctx, skipEvil = false}) {
-    const players = [G.defendingChar.id, G.attackingChar.id]
+function processPostCardActions({G, playerID, events, ctx, skipEvil = false}:{G:GState, playerID:string, events:any, ctx:any, skipEvil?:boolean}) {
+    const players = [G.defendingChar, G.attackingChar]
     const goodCardsLeft = G.players['1']?.cards?.filter?.((card) => !card.discarded)
 
     if (players.includes('SARUMAN') && goodCardsLeft.length > 1 && !skipEvil) {
@@ -685,7 +722,7 @@ function processPostCardActions({G, playerID, events, ctx, skipEvil = false}) {
         events.setActivePlayers({
             all: 'mouthCards',
         })
-    } else if (!players.includes('GANDALF') && isGandalfNearby({G})) {
+    } else if (!players.includes('GANDALF') && isGandalfNearby(G)) {
         events.setActivePlayers({
             all: 'gandalfChoice',
         })
@@ -694,7 +731,7 @@ function processPostCardActions({G, playerID, events, ctx, skipEvil = false}) {
     }
 }
 
-function beginCardBattle({G, events, ctx, playerID}) {
+function beginCardBattle({G, events, ctx, playerID}:{G:GState, events:any, ctx:any, playerID:string}) {
     const goodCard = G.goodCard
     const evilCard = G.evilCard
     const goodInert = goodCard.title === 'Magic' && !G.goodPlayMagic
@@ -712,7 +749,7 @@ function beginCardBattle({G, events, ctx, playerID}) {
     processPlayedCards({G, events, ctx, playerID})
 }
 
-function discardCard({G, isGood, knownIndex}) {
+function discardCard({G, isGood, knownIndex}: { G: GState, isGood: boolean, knownIndex?: number }) {
     if (knownIndex) {
         G.players[isGood ? '1' : '0'].cards[knownIndex].discarded = true
     } else {
@@ -724,11 +761,11 @@ function discardCard({G, isGood, knownIndex}) {
     }
 }
 
-function processPlayedCards({G, events, ctx, playerID}) {
+function processPlayedCards({G, events, ctx, playerID}: { G: GState, events: any, ctx: any, playerID: string }) {
     // discard cards
     discardCard({G, isGood: true})
     discardCard({G, isGood: false})
-    const players = [G.attackingChar.id, G.defendingChar.id]
+    const players = [G.attackingChar, G.defendingChar]
     const elrondActive = players.includes('ELROND')
     const evilTextNegated = elrondActive && G.evilCard.title !== 'Retreat (Sideways)' && G.evilCard.type === 'text'
 
@@ -851,30 +888,38 @@ function processPlayedCards({G, events, ctx, playerID}) {
     }
 }
 
-function playNobleSacrifice({G, events, ctx}) {
+function playNobleSacrifice({G, events, ctx}: { G: GState, events: any, ctx: any, }) {
+    const attacker = getChar(G, G.attackingChar)
+    const defender = getChar(G, G.defendingChar)
     updateHistory(G,
-        `Both ${G.attackingChar.name} and ${G.defendingChar.name} fight to the bitter end`,
+        `Both ${attacker.name} and ${defender.name} fight to the bitter end`,
     )
 
     // kill both
-    removeCharacter({G, defeatedUnitId: G.attackingChar.id})
-    removeCharacter({G, defeatedUnitId: G.defendingChar.id})
+    defeatCharacter({G, defeatedUnitId: G.attackingChar})
+    defeatCharacter({G, defeatedUnitId: G.defendingChar})
 
     // end battle
     endBattleLogic({G, events, ctx})
 }
 
-function processPowerFight({G, playerID, events, ctx, goodPowerBoost = 0, evilPowerBoost = 0}) {
-    const attackerIsGood = Boolean(GOOD_CHARS[G.attackingChar.id])
-    const goodUnit = attackerIsGood ? G.attackingChar : G.defendingChar
-    const evilUnit = attackerIsGood ? G.defendingChar : G.attackingChar
+function processPowerFight({G, playerID, events, ctx, goodPowerBoost = 0, evilPowerBoost = 0}
+                               : {
+    G: GState, events: any, ctx: any,
+    playerID: string,
+    goodPowerBoost?: number,
+    evilPowerBoost?: number
+}) {
+    const attackerIsGood = Boolean(GOOD_CHARS[G.attackingChar])
+    const goodUnit = getChar(G, attackerIsGood ? G.attackingChar : G.defendingChar)
+    const evilUnit = getChar(G, attackerIsGood ? G.defendingChar : G.attackingChar)
 
     const goodTotal = goodUnit.value + goodPowerBoost
     const evilTotal = evilUnit.value + evilPowerBoost
 
     if (goodTotal > evilTotal) {
         updateHistory(G, `${goodUnit.name} has vanquished ${evilUnit.name}`)
-        removeCharacter({G, defeatedUnitId: evilUnit.id})
+        defeatCharacter({G, defeatedUnitId: evilUnit.id})
 
         if (attackerIsGood) {
             startBattleLogic({G, playerID, events, ctx})
@@ -882,7 +927,7 @@ function processPowerFight({G, playerID, events, ctx, goodPowerBoost = 0, evilPo
             endBattleLogic({G, events, ctx})
         }
     } else if (goodTotal < evilTotal) {
-        removeCharacter({G, defeatedUnitId: goodUnit.id})
+        defeatCharacter({G, defeatedUnitId: goodUnit.id})
         updateHistory(G, `${evilUnit.name} has annihilated ${goodUnit.name}`)
 
         if (attackerIsGood) {
@@ -896,7 +941,11 @@ function processPowerFight({G, playerID, events, ctx, goodPowerBoost = 0, evilPo
     }
 }
 
-function processGoodSpecialCard({G, playerID, events, ctx, card}) {
+function processGoodSpecialCard({G, events, card}: {
+    G: GState,
+    events: any,
+    card: SpecialCard,
+}) {
     if (card.id === 1) {
         G.goodLightMode = true
         G.players['1'].specialCards = G.players['1'].specialCards.filter(card => card.id !== 1)
@@ -913,10 +962,7 @@ function processGoodSpecialCard({G, playerID, events, ctx, card}) {
             G.characters['GANDALF'].white = true
 
             // go to new tile
-            G.regions['FANGORN'].currentOccupants = shuffle([
-                ...G.regions['FANGORN'].currentOccupants,
-                'GANDALF',
-            ])
+            addCharacter({G, unitIdToAdd: 'GANDALF', tileId: 'FANGORN'})
 
             G.players['1'].specialCards = G.players['1'].specialCards.filter(card => card.id !== 2)
             G.goodSpecial = null
@@ -933,7 +979,10 @@ function processGoodSpecialCard({G, playerID, events, ctx, card}) {
     }
 }
 
-function processEvilSpecialCard({G, playerID, events, ctx, card}) {
+function processEvilSpecialCard({G, card}: {
+    G: GState,
+    card: SpecialCard,
+}) {
     if (card.id === 5) {
         G.evilSpecial = 'PALANTIR'
     } else if (card.id === 6) {
@@ -952,28 +1001,30 @@ function processEvilSpecialCard({G, playerID, events, ctx, card}) {
     }
 }
 
-function moveCharLogic({G, tileId, events, playerID, endTurn = true}) {
+function moveCharLogic({G, tileId, events, playerID, endTurn = true}: {
+    G: GState, events: any,
+    tileId: string,
+    playerID: string,
+    endTurn?: boolean
+}) {
     G.kingRevealed = null
     const isGood = isSpecifiedPlayerGood(playerID)
     const opposingChars = isGood ? EVIL_CHARS : GOOD_CHARS
     const previousTile = G.regions[G.startingTile]
-    const newTile = G.regions[tileId]
+    const newTile = getTile(G, tileId)
     const selectedChar = G.attackingChar
     if (!newTile || !selectedChar) {
         return INVALID_MOVE
     }
 
-    previousTile.currentOccupants = shuffle([
-        ...previousTile.currentOccupants.filter((name) => name !== selectedChar.id),
-    ])
     G.validMoves = []
+    removeCharacter({G, unitIdToRemove: G.attackingChar, tileId: G.startingTile})
+    addCharacter({G, unitIdToAdd: G.attackingChar, tileId: tileId})
 
-    newTile.currentOccupants = shuffle([...newTile.currentOccupants, selectedChar.id])
-
-    let mover = playerID === '0' ? 'Evil' : 'Good'
-    if (selectedChar.id === 'URUKHAI' && !previousTile.directions.DOWN.includes(tileId)) {
+    let mover = isSpecifiedPlayerGood(playerID) ? 'Good' : 'Evil'
+    if (selectedChar === 'URUKHAI' && !previousTile.directions.DOWN.includes(tileId)) {
         // was uruk special, reveal them
-        mover = selectedChar.name
+        mover = getChar(G, selectedChar).name
     }
 
     updateHistory(G,
@@ -993,7 +1044,7 @@ function moveCharLogic({G, tileId, events, playerID, endTurn = true}) {
         events.endGame({winner})
     } else {
         // prepare for fight
-        G.attackedTile = newTile
+        G.attackedTile = tileId
         G.startingTile = null
         G.validMoves = []
 
@@ -1017,7 +1068,6 @@ export const ConfrontationVariant = {
         return {
             history: [],
             messages: [],
-            palantir: [],
             players: {
                 0: {
                     side: 'evil',
@@ -1046,7 +1096,7 @@ export const ConfrontationVariant = {
                 stages: {
                     placement: {
                         moves: {
-                            chooseCharacter: ({G, playerID}, charID) => {
+                            chooseCharacter: ({G, playerID}: { G: GState, playerID: string }, charID: string) => {
                                 G.messages = []
                                 const isGood = isSpecifiedPlayerGood(playerID)
                                 if (isGood) {
@@ -1055,7 +1105,7 @@ export const ConfrontationVariant = {
                                     G.evilCharacterToPlace = charID
                                 }
                             },
-                            autoPlace: ({G, playerID}) => {
+                            autoPlace: ({G, playerID}: { G: GState, playerID: string }) => {
                                 const isGood = isSpecifiedPlayerGood(playerID)
                                 G.players[playerID].charactersToPlace = []
                                 if (isGood) {
@@ -1091,7 +1141,7 @@ export const ConfrontationVariant = {
                                 }
 
                             },
-                            reset: ({G, playerID}) => {
+                            reset: ({G, playerID}: { G: GState, playerID: string }) => {
                                 const isGood = isSpecifiedPlayerGood(playerID)
                                 if (isGood) {
                                     G.regions['RHUDAUR'].currentOccupants = []
@@ -1113,18 +1163,22 @@ export const ConfrontationVariant = {
                                     G.evilCharacterToPlace = null
                                 }
                             },
-                            resetChar: ({G, playerID}, charId, tileId) => {
+                            resetChar: ({G, playerID}: {
+                                G: GState,
+                                playerID: string
+                            }, charId: string, tileId: string) => {
                                 const char = G.characters[charId]
 
-                                G.regions[tileId].currentOccupants = G.regions[tileId].currentOccupants.filter(
-                                    (char_id) => char_id !== charId,
-                                )
+                                removeCharacter({G, unitIdToRemove: charId, tileId})
                                 G.players[playerID].charactersToPlace = [
                                     ...G.players[playerID].charactersToPlace,
                                     char,
                                 ]
                             },
-                            placeCharacter: ({G, playerID, events, ctx}, tileId) => {
+                            placeCharacter: ({G, playerID}: {
+                                G: GState
+                                playerID: string,
+                            }, tileId: string) => {
                                 G.messages = []
                                 const isGood = isSpecifiedPlayerGood(playerID)
                                 const charToPlace = isGood ? G.goodCharacterToPlace : G.evilCharacterToPlace
@@ -1153,10 +1207,7 @@ export const ConfrontationVariant = {
                                 }
                                 G.stopPlacementWarning = false
 
-                                G.regions[tileId].currentOccupants = shuffle([
-                                    ...G.regions[tileId].currentOccupants,
-                                    charToPlace,
-                                ])
+                                addCharacter({G, unitIdToAdd:charToPlace, tileId})
                                 const remainingChars = G.players[playerID].charactersToPlace
                                 G.players[playerID].charactersToPlace = remainingChars.filter(
                                     (c) => c.id !== charToPlace,
@@ -1166,8 +1217,13 @@ export const ConfrontationVariant = {
                                 } else {
                                     G.evilCharacterToPlace = null
                                 }
+                                // TODO test single add remove
                             },
-                            ready: ({G, playerID, events}) => {
+                            ready: ({G, playerID, events}: {
+                                G: GState,
+                                events: any,
+                                playerID: string,
+                            }) => {
                                 G.messages = []
                                 if (playerID === '0') {
                                     G.evilReady = true
@@ -1184,7 +1240,10 @@ export const ConfrontationVariant = {
                     },
                     specialCards: {
                         moves: {
-                            chooseCardOption: ({G, events}, type) => {
+                            chooseCardOption: ({G, events}: {
+                                G: GState,
+                                events: any,
+                            }, type: 'default' | number) => {
                                 G.messages = []
                                 const cardsPer = type === 'default' ? 2 : Number(type)
                                 G.players['0'].specialCards = []
@@ -1206,7 +1265,11 @@ export const ConfrontationVariant = {
                                     G.chooseSpecials = true
                                 }
                             },
-                            chooseCard: ({G, playerID, events}, card) => {
+                            chooseCard: ({G, playerID, events}: {
+                                G: GState,
+                                events: any,
+                                playerID: string,
+                            }, card: SpecialCard) => {
                                 G.messages = []
                                 const iAmGood = isSpecifiedPlayerGood(playerID)
                                 const cardsPer = G.specialCardsPer
@@ -1246,13 +1309,9 @@ export const ConfrontationVariant = {
                         return ctx.currentPlayer === '0' ? 1 : 0
                     },
                 },
-                onBegin: ({G, events, ctx}) => {
+                onBegin: ({G, events, ctx}: { G: GState, events: any, ctx: any, }) => {
                     G.palantirNames = []
-                    Object.keys(G.characters).forEach((name) => {
-                        if (!G.characters[name].permaReveal) {
-                            G.characters[name].reveal = false
-                        }
-                    })
+                    hideCharacters(G)
 
                     G.goodSpecial = null
                     G.evilSpecial = null
@@ -1266,9 +1325,7 @@ export const ConfrontationVariant = {
                         }
                     })
                     const canMove = aliveList.some((name) => {
-                        const selectedTile = [...Object.values(G.regions)].find((region) =>
-                            region.currentOccupants?.includes?.(name),
-                        )
+                        const selectedTile = findCharTile(G, name)
 
                         // try to fix beginTurn being called on empty state?
                         if (!selectedTile) {
@@ -1303,30 +1360,38 @@ export const ConfrontationVariant = {
                             events.endGame({winner})
                         }
                     }
+
+                    // hide king revealed if aragorn is dead
+                    if(G.characters['ARAGORN'].defeated){
+                        G.players['1'].specialCards = G.players['1'].specialCards.filter(card => card.id !== 3)
+                    }
                 },
             },
             moves: {
-                chooseCharacterToMove: ({G, playerID, events, ctx}, charId, tileId) => {
+                chooseCharacterToMove: ({G, playerID}: {
+                    G: GState,
+                    playerID: string
+                }, charId: string, tileId: string) => {
                     G.messages = []
                     if (
                         G.mordorDarkMode === charId
                         || (G.goodLightMode && G.goodLightMode !== true && G.goodLightMode !== charId)
                     ) {
                         return INVALID_MOVE
-                    } else if (G.attackingChar && G.attackingChar.id === charId) {
+                    } else if (G.attackingChar === charId) {
                         G.startingTile = null
                         G.attackingChar = null
                         G.validMoves = []
                     } else if (G.kingRevealed && G.kingRevealed !== charId) {
                         return INVALID_MOVE
                     } else {
-                        const selectedTile = G.regions[tileId]
-                        const selectedChar = G.characters[charId]
+                        const selectedTile = getTile(G, tileId)
+                        const selectedChar = getChar(G, charId)
                         if (!selectedTile || !selectedChar) {
                             return INVALID_MOVE
                         }
                         G.startingTile = tileId
-                        G.attackingChar = selectedChar
+                        G.attackingChar = charId
                         G.validMoves = generateMoves({G, playerID, selectedChar, selectedTile})
                         if (G.mordorDarkMode === true) {
                             G.validMoves = G.validMoves.filter(tileName => {
@@ -1345,7 +1410,7 @@ export const ConfrontationVariant = {
                         }
                     }
                 },
-                chooseRegionToMove: ({G, playerID, events, ctx}, tileId) => {
+                chooseRegionToMove: ({G, playerID, events}: { G: GState, events: any, playerID: string }, tileId: string) => {
                     G.messages = []
                     if (G.startingTile === tileId) {
                         G.startingTile = null
@@ -1353,7 +1418,7 @@ export const ConfrontationVariant = {
                         G.validMoves = []
                     } else if (!G.validMoves?.includes?.(tileId)) {
                         return INVALID_MOVE
-                    } else if (G.mordorDarkMode === G.attackingChar.id) {
+                    } else if (G.mordorDarkMode === G.attackingChar) {
                         // name was set, char already moved
                         return INVALID_MOVE
                     } else if (G.mordorDarkMode === true) {
@@ -1366,9 +1431,9 @@ export const ConfrontationVariant = {
                             return INVALID_MOVE
                         }
 
-                        G.mordorDarkMode = G.attackingChar.id
+                        G.mordorDarkMode = G.attackingChar
                         moveCharLogic({G, tileId, events, playerID, endTurn: false})
-                    } else if (G.goodLightMode && G.goodLightMode !== true && G.goodLightMode !== G.attackingChar.id) {
+                    } else if (G.goodLightMode && G.goodLightMode !== true && G.goodLightMode !== G.attackingChar) {
                         // name was set, have to move same char
                         return INVALID_MOVE
                     } else if (G.goodLightMode === true) {
@@ -1381,7 +1446,7 @@ export const ConfrontationVariant = {
                             return INVALID_MOVE
                         }
 
-                        G.goodLightMode = G.attackingChar.id
+                        G.goodLightMode = G.attackingChar
                         moveCharLogic({G, tileId, events, playerID, endTurn: false})
                     } else {
                         G.mordorDarkMode = null
@@ -1389,20 +1454,24 @@ export const ConfrontationVariant = {
                         moveCharLogic({G, tileId, events, playerID})
                     }
                 },
-                chooseSpecialCard: ({G, playerID, events, ctx}, card) => {
+                chooseSpecialCard: ({G, playerID, events, ctx}: { G: GState, events: any, ctx: any, playerID: string }, card: SpecialCard) => {
                     G.messages = []
                     const isGood = isSpecifiedPlayerGood(playerID)
                     if (isGood) {
-                        processGoodSpecialCard({G, playerID, events, ctx, card})
+                        processGoodSpecialCard({G, events, card})
                     } else {
                         if (G.kingRevealed) {
                             return INVALID_MOVE
                         }
-                        processEvilSpecialCard({G, playerID, events, ctx, card})
+                        processEvilSpecialCard({G, card})
                     }
                 },
                 // good specials
-                kingRevealedChar: ({G, playerID, events, ctx}, charId, tileId) => {
+                kingRevealedChar: ({G, playerID, events}: {
+                    G: GState,
+                    events: any,
+                    playerID: string
+                }, charId: string, tileId: string) => {
                     G.messages = []
                     const isGood = isSpecifiedPlayerGood(playerID)
                     if (!isGood || Boolean(GOOD_CHARS[charId]) || G.goodSpecial !== 'KING') {
@@ -1412,12 +1481,12 @@ export const ConfrontationVariant = {
                         G,
                         playerID: isGood ? '0' : '1',
                         selectedChar: {id: charId},
-                        selectedTile: {...G.regions[tileId]},
+                        selectedTile: getTile(G, tileId),
                     })
                     if (canMove.length === 0) {
                         return INVALID_MOVE
                     }
-                    const aragornTile = Object.values(G.regions).find(reg => reg.currentOccupants.includes('ARAGORN'))
+                    const aragornTile = findCharTile(G, 'ARAGORN')
                     updateHistory(G, `The King Aragorn from ${aragornTile.description} forces ??? to maneuver`)
 
                     G.kingRevealed = charId
@@ -1427,7 +1496,7 @@ export const ConfrontationVariant = {
                     events.endTurn()
                 },
                 // evil specials
-                palantirRegion: ({G, playerID, events, ctx}, tileId) => {
+                palantirRegion: ({G, playerID}: { G: GState, playerID: string }, tileId: string) => {
                     G.messages = []
                     const isGood = isSpecifiedPlayerGood(playerID)
                     if (isGood || tileId === 'SHIRE' || G.evilSpecial !== 'PALANTIR') {
@@ -1441,7 +1510,11 @@ export const ConfrontationVariant = {
                     G.players['0'].specialCards = G.players['0'].specialCards.filter(card => card.id !== 5)
                     G.evilSpecial = 'DONE'
                 },
-                mordorRecall: ({G, playerID, events, ctx}, charId, tileId) => {
+                mordorRecall: ({G, playerID, events}: {
+                    G: GState,
+                    events: any
+                    playerID: string
+                }, charId: string, tileId: string) => {
                     G.messages = []
                     const isGood = isSpecifiedPlayerGood(playerID)
                     if (isGood || Boolean(GOOD_CHARS[charId]) || G.evilSpecial !== 'MORDORRECALL') {
@@ -1450,21 +1523,15 @@ export const ConfrontationVariant = {
                     updateHistory(G, `Evil recalls ${EVIL_CHARS[charId].name} to Mordor`)
 
                     // leave current tile
-                    G.regions[tileId].currentOccupants = shuffle([
-                        ...G.regions[tileId].currentOccupants.filter((name) => name !== charId),
-                    ])
-
+                    removeCharacter({G, unitIdToRemove: charId, tileId})
                     // go to new tile
-                    G.regions['MORDOR'].currentOccupants = shuffle([
-                        ...G.regions['MORDOR'].currentOccupants,
-                        charId,
-                    ])
+                    addCharacter({G, unitIdToAdd: charId, tileId: 'MORDOR'})
 
                     G.players['0'].specialCards = G.players['0'].specialCards.filter(card => card.id !== 6)
                     G.evilSpecial = null
                     events.endTurn()
                 },
-                crebain: ({G, playerID, events, ctx}, charId) => {
+                crebain: ({G, playerID, events}: { G: GState, events: any, playerID: string }, charId: string) => {
                     G.messages = []
                     const isGood = isSpecifiedPlayerGood(playerID)
                     if (isGood || Boolean(EVIL_CHARS[charId]) || G.evilSpecial !== 'CREBAIN') {
@@ -1489,7 +1556,12 @@ export const ConfrontationVariant = {
                         return ctx.currentPlayer === '0' ? 1 : 0
                     },
                 },
-                onBegin: (props) => {
+                onBegin: (props: {
+                    G: GState,
+                    events: any,
+                    ctx: any,
+                    playerID: string
+                }) => {
                     props.G.messages = []
                     if (props.G.players['0'].cards.every((card) => card.discarded)) {
                         props.G.players['0'].cards.forEach((_, index) => {
@@ -1505,7 +1577,8 @@ export const ConfrontationVariant = {
                 stages: {
                     goodAction: {
                         moves: {
-                            chooseGoodAction: ({G, playerID, events, ctx}, action) => {
+                            // TODO
+                            chooseGoodAction: ({G, playerID, events, ctx}: { G: GState, events: any, ctx: any, playerID: string }, action: string) => {
                                 const isGood = isSpecifiedPlayerGood(playerID)
                                 if (!isGood) {
                                     return INVALID_MOVE
@@ -1520,27 +1593,27 @@ export const ConfrontationVariant = {
                                 } else if (action === 'SWAP') {
                                     G.goodActions = null
                                     G.messages = []
-                                    G.swapOptions = findSwapCandidates(G, G.attackedTile)
+                                    G.swapOptions = findSwapCandidates(G, getTile(G, G.attackedTile))
 
                                     events.setActivePlayers({
                                         all: 'goodRetreat',
                                     })
                                 } else if (action === 'RETREAT') {
                                     G.goodActions = null
-                                    const attackerIsGood = Boolean(GOOD_CHARS[G.attackingChar.id])
-                                    const goodUnit = attackerIsGood ? G.attackingChar : G.defendingChar
+                                    const attackerIsGood = Boolean(GOOD_CHARS[G.attackingChar])
+                                    const goodUnit = getChar(G, attackerIsGood ? G.attackingChar : G.defendingChar)
 
                                     // calculate retreat logic
                                     const retreatMoves = generateRetreatMoves({
                                         G,
                                         isGood: true,
                                         selectedChar: goodUnit,
-                                        selectedTile: G.attackedTile,
+                                        selectedTile: getTile(G, G.attackedTile),
                                     })
 
                                     if (retreatMoves.length === 1) {
                                         G.messages = []
-                                        updateHistory(G, `Faramir sidesteps a retreat into ${retreatMoves[0]}`)
+                                        updateHistory(G, `Faramir evades into ${retreatMoves[0]}`)
                                         // do auto retreat
                                         goodRetreatLogic({
                                             G,
@@ -1560,8 +1633,8 @@ export const ConfrontationVariant = {
                                     }
                                 } else if (action === 'WINDLORD') {
                                     G.goodActions = null
-                                    const attackerIsGood = Boolean(GOOD_CHARS[G.attackingChar.id])
-                                    const goodUnit = attackerIsGood ? G.attackingChar : G.defendingChar
+                                    const attackerIsGood = Boolean(GOOD_CHARS[G.attackingChar])
+                                    const goodUnit = getChar(G, attackerIsGood ? G.attackingChar : G.defendingChar)
 
                                     G.players['1'].specialCards = G.players['1'].specialCards.filter(card => card.id !== 4)
 
@@ -1570,7 +1643,7 @@ export const ConfrontationVariant = {
                                         G,
                                         isGood: true,
                                         selectedChar: {id: 'GWAIHIR'},
-                                        selectedTile: G.attackedTile,
+                                        selectedTile: getTile(G, G.attackedTile),
                                     })
 
                                     if (retreatMoves.length === 1) {
@@ -1599,12 +1672,13 @@ export const ConfrontationVariant = {
                                     )
 
                                     G.goodActions = null
-                                    if (isGandalfNearby({G})) {
+                                    if (isGandalfNearby(G)) {
                                         G.aragornSkip = true
                                         events.setActivePlayers({
                                             all: 'gandalfChoice',
                                         })
                                     } else {
+                                        // TODO check
                                         // proceed to power
                                         processPowerFight({G, playerID, events, ctx})
                                     }
@@ -1616,33 +1690,39 @@ export const ConfrontationVariant = {
                     },
                     goodRetreat: {
                         moves: {
-                            chooseSmeagolSwap: ({G, playerID, events, ctx}, charId, tileId) => {
+                            chooseSmeagolSwap: ({G, playerID, events, ctx}: {
+                                G: GState,
+                                events: any,
+                                ctx: any,
+                                playerID: string
+                            }, charId:string, tileId:string) => {
                                 if (!G.swapOptions?.includes?.(charId)) {
                                     return INVALID_MOVE
                                 }
 
                                 G.messages = []
-                                updateHistory(G, `Smeagol forces ${G.characters[charId].name} to fight their battle`)
+                                updateHistory(G, `Smeagol forces ${getChar(G, charId).name} to fight their battle`)
 
                                 G.swapOptions = null
-                                const attackedTileSpots = G.attackedTile.currentOccupants
-                                const swapTileSpots = G.regions[tileId].currentOccupants
 
                                 // swap locations
-                                attackedTileSpots.push(charId)
-                                G.attackedTile.currentOccupants = attackedTileSpots.filter(name => name !== 'SMEAGOL')
-                                G.regions[G.attackedTile.title].currentOccupants = attackedTileSpots.filter(name => name !== 'SMEAGOL')
-
-                                swapTileSpots.push('SMEAGOL')
-                                G.regions[tileId].currentOccupants = swapTileSpots.filter(name => name !== charId)
+                                removeCharacter({G, unitIdToRemove: charId, tileId: tileId})
+                                removeCharacter({G, unitIdToRemove: 'SMEAGOL', tileId: G.attackedTile})
+                                addCharacter({G, unitIdToAdd: charId, tileId: G.attackedTile})
+                                addCharacter({G, unitIdToAdd: 'SMEAGOL', tileId: tileId})
 
                                 G.characters['SMEAGOL'].reveal = G.characters['SMEAGOL'].permaReveal || false
-                                G.defendingChar = G.characters[charId]
+                                G.defendingChar = charId
 
                                 // restart battle
                                 processPreGoodActionStage({G, events, playerID, ctx})
                             },
-                            chooseRetreatRegion: ({G, playerID, events, ctx}, tileId) => {
+                            chooseRetreatRegion: ({G, playerID, events, ctx}: {
+                                G: GState,
+                                events: any,
+                                ctx: any,
+                                playerID: string
+                            }, tileId: string) => {
                                 if (!G.validMoves?.includes?.(tileId)) {
                                     return INVALID_MOVE
                                 }
@@ -1663,7 +1743,12 @@ export const ConfrontationVariant = {
                     },
                     badAction: {
                         moves: {
-                            chooseEvilAction: ({G, playerID, events, ctx}, action) => {
+                            chooseEvilAction: ({G, playerID, events, ctx}: {
+                                G: GState,
+                                events: any,
+                                ctx: any,
+                                playerID: string
+                            }, action: string) => {
                                 const isGood = isSpecifiedPlayerGood(playerID)
                                 if (isGood) {
                                     return INVALID_MOVE
@@ -1680,19 +1765,20 @@ export const ConfrontationVariant = {
                                     })
                                 } else if (action === 'RETREAT') {
                                     G.badActions = null
-                                    const attackerIsGood = Boolean(GOOD_CHARS[G.attackingChar.id])
-                                    const evilUnit = attackerIsGood ? G.defendingChar : G.attackingChar
+                                    const attackerIsGood = Boolean(GOOD_CHARS[G.attackingChar])
+                                    const evilUnit = getChar(G, attackerIsGood ? G.defendingChar : G.attackingChar)
 
                                     // calculate retreat logic
                                     const retreatMoves = generateRetreatMoves({
                                         G,
                                         isGood: false,
                                         selectedChar: evilUnit,
-                                        selectedTile: G.attackedTile,
+                                        selectedTile: getTile(G, G.attackedTile),
                                     })
 
                                     if (retreatMoves.length === 1) {
                                         G.messages = []
+                                        // TODO check card logic about not retreatable
                                         updateHistory(G, `Gollum sneaks away into ${retreatMoves[0]}`)
                                         // do auto retreat
                                         evilRetreatLogic({
@@ -1719,7 +1805,12 @@ export const ConfrontationVariant = {
                     },
                     badRetreat: {
                         moves: {
-                            chooseRetreatRegion: ({G, playerID, events, ctx}, tileId) => {
+                            chooseRetreatRegion: ({G, playerID, events, ctx}: {
+                                G: GState,
+                                events: any,
+                                ctx: any,
+                                playerID: string
+                            }, tileId: string) => {
                                 if (!G.validMoves?.includes?.(tileId)) {
                                     return INVALID_MOVE
                                 }
@@ -1739,11 +1830,14 @@ export const ConfrontationVariant = {
                     },
                     pickCards: {
                         moves: {
-                            chooseCard: ({G, playerID, events, ctx}, card) => {
+                            chooseCard: ({G, playerID}: {
+                                G: GState,
+                                playerID: string
+                            }, card: BattleCard) => {
                                 G.messages = []
 
                                 const isGood = isSpecifiedPlayerGood(playerID)
-                                const players = [G.defendingChar.id, G.attackingChar.id]
+                                const players = [G.defendingChar, G.attackingChar]
                                 const goodHasDiscards = G.players['1']?.cards?.some?.((card) => card.discarded)
                                 const evilHasDiscards = G.players['0']?.cards?.some?.((card) => card.discarded)
 
@@ -1751,12 +1845,18 @@ export const ConfrontationVariant = {
                                     G.goodPlayMagic = card.title === 'Magic' && goodHasDiscards
                                     G.goodCard = card
                                 } else if (!isGood && !G.evilCardLocked) {
+                                    // TODO test elrond
                                     G.evilPlayMagic = card.title === 'Magic' && evilHasDiscards && !players.includes('ELROND')
                                     G.evilCard = card
                                 }
 
                             },
-                            lockInCard: ({G, playerID, events, ctx}) => {
+                            lockInCard: ({G, playerID, events, ctx}: {
+                                G: GState,
+                                events: any,
+                                ctx: any,
+                                playerID: string
+                            }) => {
                                 G.messages = []
                                 const isGood = isSpecifiedPlayerGood(playerID)
                                 if (isGood && G.goodCard) {
@@ -1784,7 +1884,11 @@ export const ConfrontationVariant = {
                     },
                     pickMagicCards: {
                         moves: {
-                            chooseMagicCard: ({G, playerID, events, ctx}, card) => {
+                            // todo
+                            chooseMagicCard: ({G, playerID}: {
+                                G: GState,
+                                playerID: string
+                            }, card: BattleCard) => {
                                 G.messages = []
 
                                 if (isSpecifiedPlayerGood(playerID)) {
@@ -1798,7 +1902,12 @@ export const ConfrontationVariant = {
                                     }
                                 }
                             },
-                            lockInCard: ({G, playerID, events, ctx}) => {
+                            lockInCard: ({G, playerID, events, ctx}: {
+                                G: GState,
+                                events: any,
+                                ctx: any,
+                                playerID: string
+                            }) => {
                                 G.messages = []
                                 const isGood = isSpecifiedPlayerGood(playerID)
                                 if (isGood) {
@@ -1842,7 +1951,12 @@ export const ConfrontationVariant = {
                     },
                     sarumanCards: {
                         moves: {
-                            goodReselect: ({G, playerID, events, ctx}, goodReselect) => {
+                            goodReselect: ({G, playerID, events, ctx}: {
+                                G: GState,
+                                events: any,
+                                ctx: any,
+                                playerID: string
+                            }, goodReselect: boolean) => {
                                 G.messages = []
                                 if (goodReselect) {
                                     updateHistory(G, `Saruman rejects Goods ${G.goodCard.title || `+${G.goodCard.value}`}`)
@@ -1856,7 +1970,10 @@ export const ConfrontationVariant = {
                                 }
 
                             },
-                            chooseCard: ({G, playerID, events, ctx}, card) => {
+                            chooseCard: ({G, playerID}: {
+                                G: GState,
+                                playerID: string
+                            }, card: BattleCard) => {
                                 G.messages = []
 
                                 const isGood = isSpecifiedPlayerGood(playerID)
@@ -1870,7 +1987,12 @@ export const ConfrontationVariant = {
                                 }
 
                             },
-                            lockInCard: ({G, playerID, events, ctx}) => {
+                            lockInCard: ({G, playerID, events, ctx}: {
+                                G: GState,
+                                events: any,
+                                ctx: any,
+                                playerID: string
+                            }) => {
                                 G.messages = []
                                 const isGood = isSpecifiedPlayerGood(playerID)
                                 if (isGood && G.goodCard) {
@@ -1879,6 +2001,7 @@ export const ConfrontationVariant = {
                                     return INVALID_MOVE
                                 }
 
+                                // todo
                                 if (G.goodCardLocked && G.evilCardLocked) {
                                     // dont recheck for SARUMAN or MOUTH, do GANDALF or GO
                                     processPostCardActions({G, events, ctx, playerID, skipEvil: true})
@@ -1889,7 +2012,12 @@ export const ConfrontationVariant = {
                     },
                     mouthCards: {
                         moves: {
-                            useMouthChoice: ({G, playerID, events, ctx}, useMouthAbility) => {
+                            useMouthChoice: ({G, playerID, events, ctx}: {
+                                G: GState,
+                                events: any,
+                                ctx: any,
+                                playerID: string
+                            }, useMouthAbility: boolean) => {
                                 G.messages = []
 
                                 if (isSpecifiedPlayerGood(playerID)) {
@@ -1914,7 +2042,12 @@ export const ConfrontationVariant = {
                     },
                     gandalfChoice: {
                         moves: {
-                            useGandalfOption: ({G, playerID, events, ctx}, useGandalfAbility) => {
+                            useGandalfOption: ({G, playerID, events, ctx}: {
+                                G: GState,
+                                events: any,
+                                ctx: any,
+                                playerID: string
+                            }, useGandalfAbility: boolean) => {
                                 G.messages = []
                                 const isGood = isSpecifiedPlayerGood(playerID)
 
@@ -1923,16 +2056,14 @@ export const ConfrontationVariant = {
                                 }
                                 if (useGandalfAbility) {
                                     G.characters['GANDALF'].reveal = true
-                                    const attackerIsGood = Boolean(GOOD_CHARS[G.attackingChar.id])
+                                    const attackerIsGood = Boolean(GOOD_CHARS[G.attackingChar])
                                     if (attackerIsGood) {
-                                        G.attackingChar.value += 1
-                                        G.characters[G.attackingChar.id].value += 1
+                                        G.characters[G.attackingChar].value += 1
                                     } else {
-                                        G.defendingChar.value += 1
-                                        G.characters[G.defendingChar.id].value += 1
+                                        G.characters[G.defendingChar].value += 1
                                     }
 
-                                    const gandalfTile = Object.values(G.regions).find(reg => reg.currentOccupants.includes('GANDALF'))
+                                    const gandalfTile = findCharTile(G, 'GANDALF')
                                     updateHistory(G, `Gandalf adds +1 to Good from ${gandalfTile.description}`)
                                 }
 
@@ -1949,7 +2080,12 @@ export const ConfrontationVariant = {
                     },
                     grimaRetreat: {
                         moves: {
-                            chooseRetreatRegion: ({G, playerID, events, ctx}, tileId) => {
+                            chooseRetreatRegion: ({G, playerID, events, ctx}: {
+                                G: GState,
+                                events: any,
+                                ctx: any,
+                                playerID: string
+                            }, tileId: string) => {
                                 if (!G.validMoves?.includes?.(tileId)) {
                                     return INVALID_MOVE
                                 }
@@ -1958,14 +2094,11 @@ export const ConfrontationVariant = {
                                 updateHistory(G, 'Wormtongue scuttles back to ' + G.regions[tileId].description)
                                 G.validMoves = []
 
-                                const attackerIsGood = Boolean(GOOD_CHARS[G.attackingChar.id])
-                                const evilUnit = attackerIsGood ? G.defendingChar : G.attackingChar
+                                const attackerIsGood = Boolean(GOOD_CHARS[G.attackingChar])
+                                const evilUnit = getChar(G, attackerIsGood ? G.defendingChar : G.attackingChar)
 
                                 // go to new tile
-                                G.regions[tileId].currentOccupants = shuffle([
-                                    ...G.regions[tileId].currentOccupants,
-                                    evilUnit.id,
-                                ])
+                                addCharacter({G, unitIdToAdd: evilUnit.id, tileId})
 
                                 G.characters['WORMTONGUE'].defeated = false
 
@@ -1980,10 +2113,16 @@ export const ConfrontationVariant = {
                 },
             },
             moves: {
-                chooseCharacterToAttack: ({G, playerID, events, ctx}, charId) => {
-                    const battleTile = G.attackedTile
-                    const attacker = G.attackingChar
-                    G.defendingChar = G.characters[charId]
+                chooseCharacterToAttack: ({G, playerID, events, ctx}: {
+                    G: GState,
+                    events: any,
+                    ctx: any,
+                    playerID: string
+                }, charId: string) => {
+                    const battleTile = getTile(G, G.attackedTile)
+                    const attacker = getChar(G, G.attackingChar)
+                    G.defendingChar = charId
+                    const defender = getChar(G, charId)
 
                     battleTile.currentOccupants.forEach((name) => {
                         if (name === attacker.id || name === charId) {
@@ -1996,7 +2135,7 @@ export const ConfrontationVariant = {
                     G.battle = null
 
                     G.messages = []
-                    updateHistory(G, `${attacker.name} attacks ${G.defendingChar.name} in ${battleTile.description}`)
+                    updateHistory(G, `${attacker.name} attacks ${defender.name} in ${battleTile.description}`)
 
                     // do instantaneous abilities
                     processPreGoodActionStage({G, events, playerID, ctx})
