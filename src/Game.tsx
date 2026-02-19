@@ -1205,7 +1205,6 @@ export const ConfrontationVariant = {
 
                                     return INVALID_MOVE
                                 }
-                                G.stopPlacementWarning = false
 
                                 addCharacter({G, unitIdToAdd:charToPlace, tileId})
                                 const remainingChars = G.players[playerID].charactersToPlace
