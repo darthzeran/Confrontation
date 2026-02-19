@@ -130,7 +130,7 @@ function RightPanel({history}) {
                     <div onClick={() => setPanel(null)}>
                         <a
                             href={
-                                'https://fgbradleys.com/wp-content/uploads/rules/Lord%20of%20the%20Rings%20the%20Confrontation%20-%20rules.pdf?srsltid=AfmBOore5C2Om5lR83ukm80mlnmkwskS_wUO1MkkUZOcgQ_eMYDuHSXj'
+                                'https://images-cdn.fantasyflightgames.com/filer_public/e0/a4/e0a441fd-ea5a-4f0e-8571-1f89fee6f853/kn22_rulebook_web.pdf'
                             }
                             target={'_blank'}
                             rel="noopener noreferrer"
