@@ -9,15 +9,17 @@ import {
     GOOD_CHARS,
     GOOD_INDEXES,
     GOOD_SPECIAL_CARDS
-} from './vconsts'
+} from './vconsts.ts'
 import {PIECE_IMAGES} from './imgs'
 import {toast} from 'react-toastify'
+import {Character, GState, Location} from './types';
 
-function getIsGood(id) {
+function getIsGood(id: string) {
     return id === '1'
 }
 
-export function ConfrontationBoard({ctx, G, moves, playerID, matchID}) {
+export function ConfrontationBoard({ctx, G, moves, playerID, matchID}: { G: GState, playerID: string, matchID: String, ctx: any, moves: any }) {
+    console.log(G)
     useEffect(() => {
         if (G.messages?.length > 0) {
             toast.success(<div dangerouslySetInnerHTML={{__html: G.messages.join('<br />')}}/>)
@@ -160,7 +162,7 @@ function RightPanel({history}) {
                         card={card}
                         setCard={setCard}
                         cards={GOOD_SPECIAL_CARDS}
-                        special
+                        special={true}
                     />
                 )}
                 {panel === 'SAURON' && (
@@ -183,13 +185,13 @@ function RightPanel({history}) {
                         card={card}
                         setCard={setCard}
                         cards={EVIL_SPECIAL_CARDS}
-                        special
+                        special={true}
                     />
 
                 )}
                 {panel === 'HISTORY' && (
                     <div className={'history-holder'}>
-                        <div className={'history'}>{history.map(item => {
+                        <div className={'history'}>{history.map((item: string) => {
                             return <div>- {item}</div>
                         })}
                             <div><i>Start of Game History</i></div>
@@ -223,7 +225,7 @@ function ShowChars({detail, setDetail, chars}) {
                 </div>
             ) : (
                 <div className={'characterList'}>
-                    {Object.values(chars).map((char) => {
+                    {Object.values(chars).map((char: Character) => {
                         return (
                             <div className={`character right`} key={'detailer-' + char.id}
                                  onClick={e => e.stopPropagation()}
@@ -348,7 +350,7 @@ function ShowCards({card, setCard, cards, special = false}) {
     )
 }
 
-function Deaths({G, isGood}) {
+function Deaths({G, isGood}: { G: GState, isGood: boolean }) {
     const myChars = Object.keys(isGood ? GOOD_CHARS : EVIL_CHARS)
     const enemyChars = Object.keys(isGood ? EVIL_CHARS : GOOD_CHARS)
 
@@ -405,7 +407,8 @@ function SpecialMoves({tileId}) {
     return null
 }
 
-function getTile({phase, G, moves, myTurn, isGood, tile, ctx}) {
+function getTile({phase, G, moves, myTurn, isGood, tile, ctx}
+                     : { phase: string, G: GState, moves: any, myTurn: boolean, isGood: boolean, tile: Location, ctx: any }) {
     const currentOccupants = G.regions?.[tile.title]?.currentOccupants || []
     const charSlots = new Array(Math.max(tile.maxChars - currentOccupants.length, 0)).fill(null)
     const isGoodRetreatMove = ctx.activePlayers?.[ctx.currentPlayer] === 'goodRetreat'
@@ -417,7 +420,7 @@ function getTile({phase, G, moves, myTurn, isGood, tile, ctx}) {
             (!isGood && isBadRetreatMove)) &&
         G.validMoves?.includes?.(tile.title)
 
-    const fighters = [G.attackingChar?.id, G.defendingChar?.id]
+    const fighters = [G.attackingChar, G.defendingChar]
 
     return (
         <div
@@ -469,13 +472,12 @@ function getTile({phase, G, moves, myTurn, isGood, tile, ctx}) {
                                 } else if (G.evilSpecial === 'CREBAIN') {
                                     e.stopPropagation()
                                     moves.crebain(occupant.id)
-                                } else if(
+                                } else if (
                                     G.goodSpecial === 'KING' && EVIL_CHARS[occupant.id]
-                                ){
+                                ) {
                                     e.stopPropagation()
                                     moves.kingRevealedChar(occupant.id, tile.title)
-                                }
-                                else if (phase === 'place') {
+                                } else if (phase === 'place') {
                                     e.stopPropagation()
                                     moves.resetChar(occupant.id, tile.title)
                                 }
@@ -491,7 +493,7 @@ function getTile({phase, G, moves, myTurn, isGood, tile, ctx}) {
                                     phase === 'battle' &&
                                     myTurn &&
                                     G.battle?.[isGood ? '1' : '0'] === 'choose' &&
-                                    tile.title === G.attackedTile?.title
+                                    tile.title === G.attackedTile
                                 ) {
                                     e.stopPropagation()
                                     moves.chooseCharacterToAttack(occupant.id)
@@ -523,7 +525,8 @@ function getTile({phase, G, moves, myTurn, isGood, tile, ctx}) {
     )
 }
 
-function getBoard({G, moves, tiles, phase, myTurn, ctx, isGood}) {
+function getBoard({G, moves, tiles, phase, myTurn, ctx, isGood}
+                      : { G: GState, moves: any, tiles: Location[], phase: string, myTurn: boolean, ctx: any, isGood: boolean}) {
     const indexes = isGood ? GOOD_INDEXES : BAD_INDEXES
     const regions = []
     for (let i = 0; i < 16; i++) {
@@ -532,7 +535,7 @@ function getBoard({G, moves, tiles, phase, myTurn, ctx, isGood}) {
     return regions
 }
 
-function LeftPlacePiecesPanel({moves, G, iAmGood, playerID}) {
+function LeftPlacePiecesPanel({moves, G, iAmGood, playerID}:{moves:any, G:GState, iAmGood:boolean, playerID:string}) {
     const [detail, setDetail] = useState(null)
 
     const chars = G.players[playerID].charactersToPlace || []
@@ -570,7 +573,7 @@ function LeftPlacePiecesPanel({moves, G, iAmGood, playerID}) {
                         Reset Pieces
                     </button>
                 )}
-                {chars.map((char) => {
+                {chars.map((char: Character) => {
                     return (
                         <div
                             className={`character ${
@@ -615,7 +618,7 @@ function LeftPlacePiecesPanel({moves, G, iAmGood, playerID}) {
     </>
 }
 
-function SpecialCardsSetupPanel({moves, G, iAmGood}) {
+function SpecialCardsSetupPanel({moves, G, iAmGood}:{moves:any, G:GState, iAmGood: boolean}) {
     const isDefault = G.specialCardDefault
     const numCards = G.specialCardsPer
 
@@ -697,8 +700,7 @@ function SpecialCardsSetupPanel({moves, G, iAmGood}) {
     )
 }
 
-function LeftBattlePanel({iAmGood, playerID, G, moves, ctx, myTurn}) {
-
+function LeftBattlePanel({iAmGood, playerID, G, moves, ctx, myTurn}:{moves:any, G:GState, iAmGood:boolean, playerID:string, ctx: any, myTurn: boolean}) {
     const showGoodPreBattleAction =
         iAmGood && ctx.activePlayers?.[playerID] === 'goodAction' && G.goodActions?.length > 0
 
@@ -774,6 +776,7 @@ function LeftBattlePanel({iAmGood, playerID, G, moves, ctx, myTurn}) {
             )}
             {showBadPreBattleAction && (
                 <div className={'goodActions'}>
+                    < ShowOtherPlayerToggle theirCards={G.players['1'].cards.filter((card) => card.discarded)}/>
                     {G.badActions.map((action) => {
                         return (
                             <button
@@ -864,7 +867,7 @@ function LeftBattlePanel({iAmGood, playerID, G, moves, ctx, myTurn}) {
     </>
 }
 
-function LeftMovePhase({G, iAmGood, myTurn, moves}) {
+function LeftMovePhase({G, iAmGood, myTurn, moves}:{G:GState, iAmGood: boolean, myTurn: boolean, moves: any}) {
     const mySelectedCards = G.players[iAmGood ? '1' : '0'].specialCards || []
     const cardChosen = iAmGood ? G.goodSpecial : G.evilSpecial
 
@@ -876,11 +879,11 @@ function LeftMovePhase({G, iAmGood, myTurn, moves}) {
                 ? 'Playing Special'
                 : G.mordorDarkMode === true
                     ? 'Performing Extra Move'
-                    : (!iAmGood && G.kingRevealed)
+                    : (!iAmGood && G.kingRevealed && G.kingRevealed !== true)
                         ? `You MUST move ${EVIL_CHARS[G.kingRevealed].name}`
                         : (
-                <span>{!G?.attackingChar ? 'Select Piece' : 'Select Region'}</span>
-            )}
+                            <span>{!G?.attackingChar ? 'Select Piece' : 'Select Region'}</span>
+                        )}
         </h2>
         {myTurn && mySelectedCards.length > 0 && !cardChosen && !G.attackingChar && !G.mordorDarkMode && !(!iAmGood && G.kingRevealed) && (
             <div>
@@ -902,7 +905,7 @@ function LeftMovePhase({G, iAmGood, myTurn, moves}) {
     </>
 }
 
-function LeftPanel({phase, playerID, G, moves, ctx, myTurn}) {
+function LeftPanel({phase, playerID, G, moves, ctx, myTurn}:{moves:any, G:GState, phase:string, playerID:string, ctx: any, myTurn: boolean}) {
     const iAmGood = getIsGood(playerID)
     const placeStage = ctx.activePlayers?.[0]
 
@@ -920,7 +923,6 @@ function LeftPanel({phase, playerID, G, moves, ctx, myTurn}) {
                     moves={moves}
                     G={G}
                     iAmGood={iAmGood}
-                    playerID={playerID}
                 />
             ) : phase === 'move' ? (
                 <LeftMovePhase
@@ -959,7 +961,7 @@ function LeftPanel({phase, playerID, G, moves, ctx, myTurn}) {
     )
 }
 
-function CardsDisplay({G, ctx, moves, playerID, iAmGood, isMagicChoice}) {
+function CardsDisplay({G, ctx, moves, playerID, iAmGood, isMagicChoice}:{moves:any, G:GState, iAmGood:boolean, playerID:string, ctx: any, isMagicChoice: boolean}) {
     const [deck, setDeck] = useState('MINE')
 
     const otherPlayer = playerID === '1' ? '0' : '1'
@@ -1157,6 +1159,48 @@ function ShowOtherPlayerDiscard({setDeck, theirCards}) {
             </button>
         </div>
         {theirCards
+            .filter((card) => card.discarded)
+            .map((card) => {
+                if (card.type === 'strength') {
+                    return (
+                        <div
+                            key={'detail strength-' + card.value}
+                            className={`cardDetail ${card.discarded ? 'discard' : ''}`}
+                        >
+                            <div>Power +{card.value}:</div>
+                        </div>
+                    )
+                }
+
+                return (
+                    <div
+                        key={`detail text-${card.title}`}
+                        className={`cardDetail ${card.discarded ? 'discard' : ''}`}
+                    >
+                        <div>{card.title}</div>
+                    </div>
+                )
+            })}
+    </>
+
+}
+
+function ShowOtherPlayerToggle({theirCards}) {
+    const [show, setShow] = useState(false)
+
+    return <>
+        <div>
+            Opponent Discard Pile
+            <button
+                onClick={() => {
+                    setShow(prev => !prev)
+                }}
+                className={'lockIn'}
+            >
+                See Discarded Cards
+            </button>
+        </div>
+        {show && theirCards
             .filter((card) => card.discarded)
             .map((card) => {
                 if (card.type === 'strength') {
