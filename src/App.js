@@ -5,8 +5,8 @@ import {ToastContainer, Zoom} from 'react-toastify';
 import {Client} from 'boardgame.io/react'
 import {SocketIO} from 'boardgame.io/multiplayer'
 
-import {ConfrontationVariant} from './Game'
-import {ConfrontationBoard} from './Board'
+import {ConfrontationVariant} from './Game.tsx'
+import {ConfrontationBoard} from './Board.tsx'
 
 const isProd = true
 
