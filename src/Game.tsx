@@ -364,7 +364,7 @@ function addCharacter({G, unitIdToAdd, tileId}: { G: GState, unitIdToAdd: string
 
 function hideCharacters(G: GState) {
     Object.keys(G.characters).forEach((name) => {
-        if (!G.characters[name].permaReveal) {
+        if (!G.characters[name].permaReveal && !G.palantirNames?.includes(name)) {
             G.characters[name].reveal = false
         }
     })
@@ -388,10 +388,6 @@ function processCustomStrengths(G: GState) {
 
 function processPreGoodActionStage({G, events, playerID, ctx}: { G: GState, events: any, ctx: any, playerID: string }) {
     // process new strengths
-    // TODO verify this is in right palce?
-    // OR TODO check if thisshould call reset right before it just in case
-
-    // resetAllCharValues(G)
     processCustomStrengths(G)
 
     const goodOptions = calculateGoodPreBattle({
@@ -523,7 +519,6 @@ function startBattleLogic({G, playerID, events, ctx}: { G: GState, events: any, 
                 events.setActivePlayers({value: null})
             } else if (battleTile.currentOccupants.length === 0) {
                 // both retreated
-                // todo
                 updateHistory(G, 'Both challengers have FLED')
                 endBattleLogic({G, events, ctx})
             } else {
@@ -600,7 +595,9 @@ function resetAllCharValues(G: GState) {
 }
 
 function goodRetreatLogic({G, playerID, events, ctx, retreatMove}: {
-    G: GState, events: any, ctx: any,
+    G: GState,
+    events: any,
+    ctx: any,
     playerID: string,
     retreatMove: string
 }) {
@@ -639,15 +636,14 @@ function evilRetreatLogic({G, playerID, events, ctx, retreatMove}: {
     addCharacter({G, tileId: retreatMove, unitIdToAdd: evilUnitId})
 
     // check if we are battling cards
-    if(G.goodCard?.title === 'Retreat (Backwards)'){
+    if (G.goodCard?.title === 'Retreat (Backwards)') {
         // do good retreat
         const goodRetreated = processGoodRetreat({G, events, ctx, playerID})
         if (!goodRetreated) {
             updateHistory(G, 'Good has NO escape!')
             endBattleLogic({G, events, ctx})
         }
-    }
-    else{
+    } else {
 
         // TODO check special logic AND card logic and good retreat
         // if (attackerIsGood) {
@@ -1003,15 +999,49 @@ function processPowerFight({G, playerID, events, ctx, goodPowerBoost = 0, evilPo
     }
 }
 
+function preCheckShadowFax(G: GState) {
+    const validMoves = []
+    const aliveGoodPlayers = Object.keys(GOOD_CHARS).filter(goodName => !G.characters[goodName].defeated)
+
+    return aliveGoodPlayers.some(goodName => {
+        // check for a forward move with no enemies in it
+        const charTile = findCharTile(G, goodName)
+        const upMoves = [
+            ...charTile.directions['UP'],
+            ...((charTile.directions.SPECIAL) || []),
+        ]
+        for (let i = 0; i < upMoves.length; i++) {
+            const currentTile = G.regions[upMoves[i]]
+            // square is valid if not full of same team OR has other team in it
+            if (
+                currentTile.currentOccupants.length < currentTile.maxChars &&
+                !EVIL_CHARS[currentTile.currentOccupants?.[0]]
+            ) {
+                validMoves.push(upMoves[i])
+            }
+        }
+
+        return validMoves.length > 1
+    })
+
+}
+
 function processGoodSpecialCard({G, events, card}: {
     G: GState,
     events: any,
     card: SpecialCard,
 }) {
     if (card.id === 1) {
-        G.goodLightMode = true
-        G.players['1'].specialCards = G.players['1'].specialCards.filter(card => card.id !== 1)
-        G.goodSpecial = 'DONE'
+        // check to make sure someone has a free move
+        const canPlayShadowFax = preCheckShadowFax(G)
+        if (canPlayShadowFax) {
+            G.goodLightMode = true
+            G.players['1'].specialCards = G.players['1'].specialCards.filter(card => card.id !== 1)
+            G.goodSpecial = 'DONE'
+        } else {
+            updateHistory(G, 'Good has no valid shadowfax moves to play')
+            return INVALID_MOVE
+        }
     } else if (card.id === 2) {
         const fangorn = G.regions['FANGORN']
         if (
@@ -1753,11 +1783,8 @@ export const ConfrontationVariant = {
                                             all: 'gandalfChoice',
                                         })
                                     } else {
-                                        //TODO
                                         // proceed to bad options
                                         processPreBadActionStage({G, playerID, events, ctx})
-                                        // proceed to power
-                                        // processPowerFight({G, playerID, events, ctx})
                                     }
                                 } else {
                                     G.badState = 'unexpected good action'
@@ -1838,12 +1865,11 @@ export const ConfrontationVariant = {
                                     updateHistory(G, 'Sauron will Fight')
                                     G.badActions = null
                                     // proceed to cards
-                                    if(G.aragornSkip){
+                                    if (G.aragornSkip) {
                                         G.aragornSkip = null
                                         // proceed to power
                                         processPowerFight({G, playerID, events, ctx})
-                                    }
-                                    else{
+                                    } else {
                                         events.setActivePlayers({
                                             all: 'pickCards',
                                         })
@@ -1967,7 +1993,6 @@ export const ConfrontationVariant = {
                     },
                     pickMagicCards: {
                         moves: {
-                            // todo
                             chooseMagicCard: ({G, playerID}: {
                                 G: GState,
                                 playerID: string
@@ -2078,11 +2103,10 @@ export const ConfrontationVariant = {
                                     return INVALID_MOVE
                                 }
 
-                                // todo
                                 if (G.goodCardLocked && G.evilCardLocked) {
                                     // return previous good card
                                     const discardedMagic = G.oldGoodCard?.discarded
-                                    if(discardedMagic){
+                                    if (discardedMagic) {
                                         // restore magic card
                                         G.players['1'].cards[5].discarded = false
                                     }
@@ -2091,7 +2115,6 @@ export const ConfrontationVariant = {
 
                                     // dont recheck for SARUMAN or MOUTH, do GANDALF or GO
                                     processPostCardActions({G, events, ctx, playerID, skipEvil: true})
-
                                 }
                             },
                         },
