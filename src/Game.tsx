@@ -1733,6 +1733,7 @@ export const ConfrontationVariant = {
                                         })
                                     } else if (retreatMoves.length > 1) {
                                         // move to choose retreat square stage
+                                        updateHistory(G, `Gwaihir has come to resuce ${goodUnit.name}`)
                                         G.validMoves = retreatMoves
                                         events.setActivePlayers({
                                             all: 'goodRetreat',
@@ -1746,14 +1747,17 @@ export const ConfrontationVariant = {
                                     )
 
                                     G.goodActions = null
+                                    G.aragornSkip = true
                                     if (isGandalfNearby(G)) {
-                                        G.aragornSkip = true
                                         events.setActivePlayers({
                                             all: 'gandalfChoice',
                                         })
                                     } else {
+                                        //TODO
+                                        // proceed to bad options
+                                        processPreBadActionStage({G, playerID, events, ctx})
                                         // proceed to power
-                                        processPowerFight({G, playerID, events, ctx})
+                                        // processPowerFight({G, playerID, events, ctx})
                                     }
                                 } else {
                                     G.badState = 'unexpected good action'
@@ -1834,9 +1838,16 @@ export const ConfrontationVariant = {
                                     updateHistory(G, 'Sauron will Fight')
                                     G.badActions = null
                                     // proceed to cards
-                                    events.setActivePlayers({
-                                        all: 'pickCards',
-                                    })
+                                    if(G.aragornSkip){
+                                        G.aragornSkip = null
+                                        // proceed to power
+                                        processPowerFight({G, playerID, events, ctx})
+                                    }
+                                    else{
+                                        events.setActivePlayers({
+                                            all: 'pickCards',
+                                        })
+                                    }
                                 } else if (action === 'RETREAT') {
                                     G.badActions = null
                                     const attackerIsGood = Boolean(GOOD_CHARS[G.attackingChar])
