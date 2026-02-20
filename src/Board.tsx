@@ -18,7 +18,13 @@ function getIsGood(id: string) {
     return id === '1'
 }
 
-export function ConfrontationBoard({ctx, G, moves, playerID, matchID}: { G: GState, playerID: string, matchID: String, ctx: any, moves: any }) {
+export function ConfrontationBoard({ctx, G, moves, playerID, matchID}: {
+    G: GState,
+    playerID: string,
+    matchID: String,
+    ctx: any,
+    moves: any
+}) {
     console.log(G)
     useEffect(() => {
         if (G.messages?.length > 0) {
@@ -350,7 +356,10 @@ function ShowCards({card, setCard, cards, special = false}) {
     )
 }
 
-function Deaths({G, isGood}: { G: GState, isGood: boolean }) {
+function Deaths({G, isGood}: {
+    G: GState,
+    isGood: boolean
+}) {
     const myChars = Object.keys(isGood ? GOOD_CHARS : EVIL_CHARS)
     const enemyChars = Object.keys(isGood ? EVIL_CHARS : GOOD_CHARS)
 
@@ -408,7 +417,15 @@ function SpecialMoves({tileId}) {
 }
 
 function getTile({phase, G, moves, myTurn, isGood, tile, ctx}
-                     : { phase: string, G: GState, moves: any, myTurn: boolean, isGood: boolean, tile: Location, ctx: any }) {
+                     : {
+    phase: string,
+    G: GState,
+    moves: any,
+    myTurn: boolean,
+    isGood: boolean,
+    tile: Location,
+    ctx: any
+}) {
     const currentOccupants = G.regions?.[tile.title]?.currentOccupants || []
     const charSlots = new Array(Math.max(tile.maxChars - currentOccupants.length, 0)).fill(null)
     const isGoodRetreatMove = ctx.activePlayers?.[ctx.currentPlayer] === 'goodRetreat'
@@ -526,7 +543,15 @@ function getTile({phase, G, moves, myTurn, isGood, tile, ctx}
 }
 
 function getBoard({G, moves, tiles, phase, myTurn, ctx, isGood}
-                      : { G: GState, moves: any, tiles: Location[], phase: string, myTurn: boolean, ctx: any, isGood: boolean}) {
+                      : {
+    G: GState,
+    moves: any,
+    tiles: Location[],
+    phase: string,
+    myTurn: boolean,
+    ctx: any,
+    isGood: boolean
+}) {
     const indexes = isGood ? GOOD_INDEXES : BAD_INDEXES
     const regions = []
     for (let i = 0; i < 16; i++) {
@@ -535,7 +560,12 @@ function getBoard({G, moves, tiles, phase, myTurn, ctx, isGood}
     return regions
 }
 
-function LeftPlacePiecesPanel({moves, G, iAmGood, playerID}:{moves:any, G:GState, iAmGood:boolean, playerID:string}) {
+function LeftPlacePiecesPanel({moves, G, iAmGood, playerID}: {
+    moves: any,
+    G: GState,
+    iAmGood: boolean,
+    playerID: string
+}) {
     const [detail, setDetail] = useState(null)
 
     const chars = G.players[playerID].charactersToPlace || []
@@ -618,7 +648,11 @@ function LeftPlacePiecesPanel({moves, G, iAmGood, playerID}:{moves:any, G:GState
     </>
 }
 
-function SpecialCardsSetupPanel({moves, G, iAmGood}:{moves:any, G:GState, iAmGood: boolean}) {
+function SpecialCardsSetupPanel({moves, G, iAmGood}: {
+    moves: any,
+    G: GState,
+    iAmGood: boolean
+}) {
     const isDefault = G.specialCardDefault
     const numCards = G.specialCardsPer
 
@@ -700,15 +734,24 @@ function SpecialCardsSetupPanel({moves, G, iAmGood}:{moves:any, G:GState, iAmGoo
     )
 }
 
-function LeftBattlePanel({iAmGood, playerID, G, moves, ctx, myTurn}:{moves:any, G:GState, iAmGood:boolean, playerID:string, ctx: any, myTurn: boolean}) {
+function LeftBattlePanel({iAmGood, playerID, G, moves, ctx, myTurn}: {
+    moves: any,
+    G: GState,
+    iAmGood: boolean,
+    playerID: string,
+    ctx: any,
+    myTurn: boolean
+}) {
     const showGoodPreBattleAction =
         iAmGood && ctx.activePlayers?.[playerID] === 'goodAction' && G.goodActions?.length > 0
 
+    const isBadPreBattleAction = ctx.activePlayers?.[playerID] === 'badAction' && G.badActions?.length > 0
     const showBadPreBattleAction =
-        !iAmGood && ctx.activePlayers?.[playerID] === 'badAction' && G.badActions?.length > 0
+        !iAmGood && isBadPreBattleAction
 
     const showRetreatAction = iAmGood && ctx.activePlayers?.[playerID] === 'goodRetreat'
     const isGoodRetreatMove = !iAmGood && ctx.activePlayers?.[playerID] === 'goodRetreat'
+    const isBadRetreatMove = iAmGood && ctx.activePlayers?.[playerID] === 'badRetreat'
     const isSarumanChoice = ctx.activePlayers?.[playerID] === 'sarumanCards'
     const isMouthChoice = ctx.activePlayers?.[playerID] === 'mouthCards'
     const isGandalfChoice = ctx.activePlayers?.[playerID] === 'gandalfChoice'
@@ -737,7 +780,7 @@ function LeftBattlePanel({iAmGood, playerID, G, moves, ctx, myTurn}:{moves:any, 
                     ? 'Choose an Action'
                     : showRetreatAction
                         ? `Choose a ${G.swapOptions ? 'Character to Swap With' : 'Retreat'}`
-                        : isGoodRetreatMove
+                        : (isGoodRetreatMove || isBadRetreatMove)
                             ? 'Opponent is Retreating'
                             : pickCards
                                 ? (iAmGood ? G.goodCardLocked : G.evilCardLocked)
@@ -755,7 +798,9 @@ function LeftBattlePanel({iAmGood, playerID, G, moves, ctx, myTurn}:{moves:any, 
                                             ? 'Gandalf Ability'
                                             : isGrimaRetreat
                                                 ? 'Grima Ability'
-                                                : 'Battle'
+                                                : isBadPreBattleAction
+                                                    ? 'Opponent choosing ability'
+                                                    : 'Battle'
             }
         </h2>
         <div className={'cardsDiv shrink'}>
@@ -867,7 +912,12 @@ function LeftBattlePanel({iAmGood, playerID, G, moves, ctx, myTurn}:{moves:any, 
     </>
 }
 
-function LeftMovePhase({G, iAmGood, myTurn, moves}:{G:GState, iAmGood: boolean, myTurn: boolean, moves: any}) {
+function LeftMovePhase({G, iAmGood, myTurn, moves}: {
+    G: GState,
+    iAmGood: boolean,
+    myTurn: boolean,
+    moves: any
+}) {
     const mySelectedCards = G.players[iAmGood ? '1' : '0'].specialCards || []
     const cardChosen = iAmGood ? G.goodSpecial : G.evilSpecial
 
@@ -905,7 +955,14 @@ function LeftMovePhase({G, iAmGood, myTurn, moves}:{G:GState, iAmGood: boolean, 
     </>
 }
 
-function LeftPanel({phase, playerID, G, moves, ctx, myTurn}:{moves:any, G:GState, phase:string, playerID:string, ctx: any, myTurn: boolean}) {
+function LeftPanel({phase, playerID, G, moves, ctx, myTurn}: {
+    moves: any,
+    G: GState,
+    phase: string,
+    playerID: string,
+    ctx: any,
+    myTurn: boolean
+}) {
     const iAmGood = getIsGood(playerID)
     const placeStage = ctx.activePlayers?.[0]
 
@@ -961,7 +1018,14 @@ function LeftPanel({phase, playerID, G, moves, ctx, myTurn}:{moves:any, G:GState
     )
 }
 
-function CardsDisplay({G, ctx, moves, playerID, iAmGood, isMagicChoice}:{moves:any, G:GState, iAmGood:boolean, playerID:string, ctx: any, isMagicChoice: boolean}) {
+function CardsDisplay({G, ctx, moves, playerID, iAmGood, isMagicChoice}: {
+    moves: any,
+    G: GState,
+    iAmGood: boolean,
+    playerID: string,
+    ctx: any,
+    isMagicChoice: boolean
+}) {
     const [deck, setDeck] = useState('MINE')
 
     const otherPlayer = playerID === '1' ? '0' : '1'
