@@ -438,6 +438,7 @@ function getTile({phase, G, moves, myTurn, isGood, tile, ctx}
         G.validMoves?.includes?.(tile.title)
 
     const fighters = [G.attackingChar, G.defendingChar]
+    const myTeam = isGood ? GOOD_CHARS : EVIL_CHARS
 
     return (
         <div
@@ -498,7 +499,7 @@ function getTile({phase, G, moves, myTurn, isGood, tile, ctx}
                                     e.stopPropagation()
                                     moves.resetChar(occupant.id, tile.title)
                                 }
-                                if (phase === 'move' && myTurn && canSeeChar) {
+                                if (phase === 'move' && myTurn && canSeeChar && Boolean(myTeam[occupant.id]) ) {
                                     e.stopPropagation()
                                     moves.chooseCharacterToMove(occupant.id, tile.title)
                                 }
