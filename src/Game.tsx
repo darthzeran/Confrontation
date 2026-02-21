@@ -2110,6 +2110,10 @@ export const ConfrontationVariant = {
                                         // restore magic card
                                         G.players['1'].cards[5].discarded = false
                                     }
+                                    else if(G.goodCard?.discarded){
+                                        // good used magic, discard the magic
+                                        G.players['1'].cards[5].discarded = true
+                                    }
 
                                     G.oldGoodCard = null
 
