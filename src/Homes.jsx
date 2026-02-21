@@ -97,8 +97,8 @@ function Home({onCreate, onJoin}) {
                                 </div>
                             ) : <div style={{color: 'white', textAlign: 'center', cursor: 'pointer'}}>
                                 <a
-                                    style={{border: '1px solid white', padding: '4px 8px'}}
-                                    onClick={() => window.location.href = 'https://confrontation-lotr.vercel.app/'}
+                                    style={{border: '1px solid white', padding: '4px 8px', color: 'white', textDecoration: 'none'}}
+                                    href = 'https://confrontation-lotr.vercel.app/'
                                 >
                                     Go Classic
                                 </a>
