@@ -33,22 +33,21 @@ function Home({ onCreate, onJoin }) {
                         <div className="modal">
                             <div className="modal-header">
                                 <h2 className="modal-title"><i>Choose Your Side</i></h2>
-                                <div
+                                <form
                                     className={'joinMatchDiv'}
+                                    onSubmit={(e) => {
+                                        e.preventDefault() // Prevent page refresh
+                                        const room = document.getElementById('joinMatchId').value
+                                        if(room && room.length === 4){
+                                            onJoin(room.toLowerCase())
+                                        }
+                                    }}
                                 >
                                     <input id="joinMatchId" placeholder="Enter Match ID"/>
-                                    <button
-                                        id="joinMatchBtn"
-                                        onClick={() => {
-                                            const room = document.getElementById('joinMatchId').value
-                                            if(room && room.length === 4){
-                                                onJoin(room.toLowerCase())
-                                            }
-                                        }}
-                                    >
+                                    <button id="joinMatchBtn">
                                         <i>Join Lobby</i>
                                     </button>
-                                </div>
+                                </form>
                             </div>
 
                             <div className="choice-container">
