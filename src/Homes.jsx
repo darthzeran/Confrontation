@@ -1,7 +1,7 @@
-import React, { useState } from 'react'
+import React, {useState} from 'react'
 import './Home.css'
 
-function Home({ onCreate, onJoin }) {
+function Home({onCreate, onJoin}) {
     const [showModal, setShowModal] = useState(true)
     const [selectedOption, setSelectedOption] = useState(null)
 
@@ -38,7 +38,7 @@ function Home({ onCreate, onJoin }) {
                                     onSubmit={(e) => {
                                         e.preventDefault() // Prevent page refresh
                                         const room = document.getElementById('joinMatchId').value
-                                        if(room && room.length === 4){
+                                        if (room && room.length === 4) {
                                             onJoin(room.toLowerCase())
                                         }
                                     }}
@@ -78,7 +78,7 @@ function Home({ onCreate, onJoin }) {
                                 </button>
                             </div>
 
-                            {selectedOption && (
+                            {selectedOption ? (
                                 <div className="choice-feedback">
                                     <p className="choice-message">
                                         <i>
@@ -95,7 +95,14 @@ function Home({ onCreate, onJoin }) {
                                         <div className="dot"></div>
                                     </div>
                                 </div>
-                            )}
+                            ) : <div style={{color: 'white', textAlign: 'center', cursor: 'pointer'}}>
+                                <a
+                                    style={{border: '1px solid white', padding: '4px 8px'}}
+                                    onClick={() => window.location.href = 'https://confrontation-lotr.vercel.app/'}
+                                >
+                                    Go Classic
+                                </a>
+                            </div>}
                         </div>
                     </div>
                 )}
