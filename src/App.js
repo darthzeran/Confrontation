@@ -46,9 +46,9 @@ const App = () => {
             {!matchId ? (
                 <div>
                     <Home
-                        onCreate={(isPlayer2) => {
+                        onCreate={async (isPlayer2) => {
                             const newMatchId = generateMatchId()
-                            alert(`Share this Match ID with Player 2: ${newMatchId}${isPlayer2 ? '0' : '1'}`)
+                            await navigator.clipboard.writeText(`${newMatchId}${isPlayer2 ? '0' : '1'}`);
                             setMatchId(newMatchId)
                             setPlayerId(isPlayer2 ? '1' : '0')
                         }}
