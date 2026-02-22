@@ -11,7 +11,7 @@ function Home({onCreate, onJoin}) {
         setTimeout(() => {
             onCreate(choice === 'good')
             setShowModal(false)
-        }, 500)
+        }, 1000)
     }
 
     return (
