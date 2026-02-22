@@ -9,6 +9,7 @@ import {
 } from './vconsts.ts'
 import {Character, CharacterMap, Location, GState, SpecialCard, BattleCard} from './types';
 import {INVALID_MOVE} from 'boardgame.io/core'
+
 // const INVALID_MOVE = undefined
 
 
@@ -92,7 +93,9 @@ function getSpecialCharPossibleMoves(charId: string, selectedTile: Location, G: 
 function generateMoves({G, playerID, selectedChar, selectedTile}: {
     G: GState,
     playerID: string,
-    selectedChar: Character | { id: string },
+    selectedChar: Character | {
+        id: string
+    },
     selectedTile: Location
 }) {
     if (selectedChar.id === 'WATCHER' && G.characters['WATCHER'].permaReveal) {
@@ -133,7 +136,9 @@ function generateMoves({G, playerID, selectedChar, selectedTile}: {
 function generateRetreatMoves({G, isGood, selectedChar, selectedTile}: {
     G: GState,
     isGood: boolean,
-    selectedChar: Character | { id?: string },
+    selectedChar: Character | {
+        id?: string
+    },
     selectedTile: Location
 }) {
     const validRetreatMoves = []
@@ -344,18 +349,29 @@ function isGandalfNearby(G: GState): boolean {
 }
 
 
-function defeatCharacter({G, defeatedUnitId}: { G: GState, defeatedUnitId: string }) {
+function defeatCharacter({G, defeatedUnitId}: {
+    G: GState,
+    defeatedUnitId: string
+}) {
     G.characters[defeatedUnitId].defeated = true
     removeCharacter({G, unitIdToRemove: defeatedUnitId, tileId: G.attackedTile})
 }
 
-function removeCharacter({G, unitIdToRemove, tileId}: { G: GState, unitIdToRemove: string, tileId: string }) {
+function removeCharacter({G, unitIdToRemove, tileId}: {
+    G: GState,
+    unitIdToRemove: string,
+    tileId: string
+}) {
     G.regions[tileId].currentOccupants = shuffle([
         ...G.regions[tileId].currentOccupants.filter((name) => name !== unitIdToRemove),
     ])
 }
 
-function addCharacter({G, unitIdToAdd, tileId}: { G: GState, unitIdToAdd: string, tileId: string }) {
+function addCharacter({G, unitIdToAdd, tileId}: {
+    G: GState,
+    unitIdToAdd: string,
+    tileId: string
+}) {
     G.regions[tileId].currentOccupants = shuffle([
         ...G.regions[tileId].currentOccupants,
         unitIdToAdd,
@@ -386,7 +402,12 @@ function processCustomStrengths(G: GState) {
     }
 }
 
-function processPreGoodActionStage({G, events, playerID, ctx}: { G: GState, events: any, ctx: any, playerID: string }) {
+function processPreGoodActionStage({G, events, playerID, ctx}: {
+    G: GState,
+    events: any,
+    ctx: any,
+    playerID: string
+}) {
     // process new strengths
     processCustomStrengths(G)
 
@@ -410,7 +431,12 @@ function processPreGoodActionStage({G, events, playerID, ctx}: { G: GState, even
     }
 }
 
-function processPreBadActionStage({G, playerID, events, ctx}: { G: GState, events: any, ctx: any, playerID: string }) {
+function processPreBadActionStage({G, playerID, events, ctx}: {
+    G: GState,
+    events: any,
+    ctx: any,
+    playerID: string
+}) {
     G.goodActions = null
 
     const badOptions = calculateEvilPreBattle({
@@ -422,10 +448,16 @@ function processPreBadActionStage({G, playerID, events, ctx}: { G: GState, event
 
     if (badOptions.length === 0) {
         G.badActions = null
-        // proceed to cards
-        events.setActivePlayers({
-            all: 'pickCards',
-        })
+        if (G.aragornSkip) {
+            G.aragornSkip = null
+            // proceed to power
+            processPowerFight({G, playerID, events, ctx});
+        } else {
+            // proceed to cards
+            events.setActivePlayers({
+                all: 'pickCards',
+            })
+        }
     } else {
         if (badOptions[0] === 'WIN') {
             const attackerIsGood = Boolean(GOOD_CHARS[G.attackingChar])
@@ -472,7 +504,11 @@ function checkCanWormTongueEscape(G: GState) {
     return false
 }
 
-function wormTongueCheck({G, events, location}: { G: GState, events: any, location: string }) {
+function wormTongueCheck({G, events, location}: {
+    G: GState,
+    events: any,
+    location: string
+}) {
     G.validMoves = generateRetreatMoves({
         G,
         isGood: false,
@@ -485,7 +521,12 @@ function wormTongueCheck({G, events, location}: { G: GState, events: any, locati
     })
 }
 
-function startBattleLogic({G, playerID, events, ctx}: { G: GState, events: any, ctx: any, playerID: string }) {
+function startBattleLogic({G, playerID, events, ctx}: {
+    G: GState,
+    events: any,
+    ctx: any,
+    playerID: string
+}) {
     // hide all characters because we can
     hideCharacters(G)
 
@@ -545,7 +586,11 @@ function startBattleLogic({G, playerID, events, ctx}: { G: GState, events: any, 
     }
 }
 
-function endBattleLogic({G, events, ctx}: { G: GState, events: any, ctx: any, }) {
+function endBattleLogic({G, events, ctx}: {
+    G: GState,
+    events: any,
+    ctx: any,
+}) {
     // hide all characters because we can
     hideCharacters(G)
     // reset character values
@@ -623,7 +668,9 @@ function goodRetreatLogic({G, playerID, events, ctx, retreatMove}: {
 }
 
 function evilRetreatLogic({G, playerID, events, ctx, retreatMove}: {
-    G: GState, events: any, ctx: any,
+    G: GState,
+    events: any,
+    ctx: any,
     playerID: string,
     retreatMove: string
 }) {
@@ -693,7 +740,12 @@ function processGoodRetreat({G, events, ctx, playerID}: {
     return false
 }
 
-function processEvilCardRetreat({G, events, ctx, playerID}: { G: GState, events: any, ctx: any, playerID: string }) {
+function processEvilCardRetreat({G, events, ctx, playerID}: {
+    G: GState,
+    events: any,
+    ctx: any,
+    playerID: string
+}) {
     const evilRetreatMoves = generateRetreatMoves({
         G,
         isGood: false,
@@ -732,7 +784,7 @@ function processPostCardActions({G, playerID, events, ctx, skipEvil = false}: {
     skipEvil?: boolean
 }) {
     const players = [G.defendingChar, G.attackingChar]
-    const goodCardsLeft = G.players['1']?.cards?.filter?.((card) => !card.discarded)
+    const goodCardsLeft = G.players['1']?.cards?.filter?.((card) => !card.discarded) || []
 
     if (players.includes('SARUMAN') && goodCardsLeft.length > 1 && !skipEvil) {
         G.oldGoodCard = null
@@ -752,7 +804,12 @@ function processPostCardActions({G, playerID, events, ctx, skipEvil = false}: {
     }
 }
 
-function beginCardBattle({G, events, ctx, playerID}: { G: GState, events: any, ctx: any, playerID: string }) {
+function beginCardBattle({G, events, ctx, playerID}: {
+    G: GState,
+    events: any,
+    ctx: any,
+    playerID: string
+}) {
     const goodCard = G.goodCard
     const evilCard = G.evilCard
     const goodInert = goodCard.title === 'Magic' && !G.goodPlayMagic
@@ -770,7 +827,11 @@ function beginCardBattle({G, events, ctx, playerID}: { G: GState, events: any, c
     processPlayedCards({G, events, ctx, playerID})
 }
 
-function discardCard({G, isGood, knownIndex}: { G: GState, isGood: boolean, knownIndex?: number }) {
+function discardCard({G, isGood, knownIndex}: {
+    G: GState,
+    isGood: boolean,
+    knownIndex?: number
+}) {
     if (knownIndex) {
         G.players[isGood ? '1' : '0'].cards[knownIndex].discarded = true
     } else {
@@ -842,7 +903,12 @@ function processGoodTextCards({G, events, ctx, playerID, evilUsePower}: {
     }
 }
 
-function processPlayedCards({G, events, ctx, playerID}: { G: GState, events: any, ctx: any, playerID: string }) {
+function processPlayedCards({G, events, ctx, playerID}: {
+    G: GState,
+    events: any,
+    ctx: any,
+    playerID: string
+}) {
     // discard cards
     discardCard({G, isGood: true})
     discardCard({G, isGood: false})
@@ -937,7 +1003,11 @@ function processPlayedCards({G, events, ctx, playerID}: { G: GState, events: any
     }
 }
 
-function playNobleSacrifice({G, events, ctx}: { G: GState, events: any, ctx: any, }) {
+function playNobleSacrifice({G, events, ctx}: {
+    G: GState,
+    events: any,
+    ctx: any,
+}) {
     const attacker = getChar(G, G.attackingChar)
     const defender = getChar(G, G.defendingChar)
     updateHistory(G,
@@ -954,7 +1024,9 @@ function playNobleSacrifice({G, events, ctx}: { G: GState, events: any, ctx: any
 
 function processPowerFight({G, playerID, events, ctx, goodPowerBoost = 0, evilPowerBoost = 0}
                                : {
-    G: GState, events: any, ctx: any,
+    G: GState,
+    events: any,
+    ctx: any,
     playerID: string,
     goodPowerBoost?: number,
     evilPowerBoost?: number
@@ -1094,7 +1166,8 @@ function processEvilSpecialCard({G, card}: {
 }
 
 function moveCharLogic({G, tileId, events, playerID, endTurn = true}: {
-    G: GState, events: any,
+    G: GState,
+    events: any,
     tileId: string,
     playerID: string,
     endTurn?: boolean
@@ -1188,16 +1261,22 @@ export const ConfrontationVariant = {
                 stages: {
                     placement: {
                         moves: {
-                            chooseCharacter: ({G, playerID}: { G: GState, playerID: string }, charID: string) => {
+                            chooseCharacter: ({G, playerID}: {
+                                G: GState,
+                                playerID: string
+                            }, charID: string) => {
                                 G.messages = []
                                 const isGood = isSpecifiedPlayerGood(playerID)
-                                if (isGood) {
+                                if (isGood && Boolean(GOOD_CHARS[charID])) {
                                     G.goodCharacterToPlace = charID
-                                } else {
+                                } else if (!isGood && Boolean(EVIL_CHARS[charID])) {
                                     G.evilCharacterToPlace = charID
                                 }
                             },
-                            autoPlace: ({G, playerID}: { G: GState, playerID: string }) => {
+                            autoPlace: ({G, playerID}: {
+                                G: GState,
+                                playerID: string
+                            }) => {
                                 const isGood = isSpecifiedPlayerGood(playerID)
                                 G.players[playerID].charactersToPlace = []
                                 if (isGood) {
@@ -1233,7 +1312,10 @@ export const ConfrontationVariant = {
                                 }
 
                             },
-                            reset: ({G, playerID}: { G: GState, playerID: string }) => {
+                            reset: ({G, playerID}: {
+                                G: GState,
+                                playerID: string
+                            }) => {
                                 const isGood = isSpecifiedPlayerGood(playerID)
                                 if (isGood) {
                                     G.regions['RHUDAUR'].currentOccupants = []
@@ -1400,7 +1482,11 @@ export const ConfrontationVariant = {
                         return ctx.currentPlayer === '0' ? 1 : 0
                     },
                 },
-                onBegin: ({G, events, ctx}: { G: GState, events: any, ctx: any, }) => {
+                onBegin: ({G, events, ctx}: {
+                    G: GState,
+                    events: any,
+                    ctx: any,
+                }) => {
                     G.palantirNames = []
                     hideCharacters(G)
 
@@ -1596,7 +1682,10 @@ export const ConfrontationVariant = {
                     events.endTurn()
                 },
                 // evil specials
-                palantirRegion: ({G, playerID}: { G: GState, playerID: string }, tileId: string) => {
+                palantirRegion: ({G, playerID}: {
+                    G: GState,
+                    playerID: string
+                }, tileId: string) => {
                     G.messages = []
                     const isGood = isSpecifiedPlayerGood(playerID)
                     if (isGood || tileId === 'SHIRE' || G.evilSpecial !== 'PALANTIR') {
@@ -1631,7 +1720,11 @@ export const ConfrontationVariant = {
                     G.evilSpecial = null
                     events.endTurn()
                 },
-                crebain: ({G, playerID, events}: { G: GState, events: any, playerID: string }, charId: string) => {
+                crebain: ({G, playerID, events}: {
+                    G: GState,
+                    events: any,
+                    playerID: string
+                }, charId: string) => {
                     G.messages = []
                     const isGood = isSpecifiedPlayerGood(playerID)
                     if (isGood || Boolean(EVIL_CHARS[charId]) || G.evilSpecial !== 'CREBAIN') {
@@ -2097,6 +2190,12 @@ export const ConfrontationVariant = {
                             }) => {
                                 G.messages = []
                                 const isGood = isSpecifiedPlayerGood(playerID)
+
+                                if (G.goodPlayMagic && G.goodCard?.title === 'Magic') {
+                                    // you cant JUST play magic, you have to choose another card
+                                    return INVALID_MOVE
+                                }
+
                                 if (isGood && G.goodCard) {
                                     G.goodCardLocked = true
                                 } else if (!isGood) {
@@ -2109,8 +2208,7 @@ export const ConfrontationVariant = {
                                     if (discardedMagic) {
                                         // restore magic card
                                         G.players['1'].cards[5].discarded = false
-                                    }
-                                    else if(G.goodCard?.discarded){
+                                    } else if (G.goodCard?.discarded) {
                                         // good used magic, discard the magic
                                         G.players['1'].cards[5].discarded = true
                                     }
