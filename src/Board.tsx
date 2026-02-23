@@ -453,7 +453,7 @@ function getTile({phase, G, moves, myTurn, isGood, tile, ctx}
                 } else if (phase === 'move') {
                     moves.chooseRegionToMove(tile.title)
                     if(!window?.location?.href?.includes('localhost')){
-                        fetch('https://confrontationserver.onrender.com').catch(e=>{})
+                        fetch('https://confrontationserver.onrender.com/health').catch(e=>{})
                     }
                 } else if (
                     phase === 'battle' &&
