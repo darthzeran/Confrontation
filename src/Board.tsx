@@ -436,13 +436,14 @@ function getTile({phase, G, moves, myTurn, isGood, tile, ctx}
             (isGood && isGoodRetreatMove) ||
             (!isGood && isBadRetreatMove)) &&
         G.validMoves?.includes?.(tile.title)
+    const isPalantirRegion = !isGood && (G.palantirRegions || []).includes(tile.title)
 
     const fighters = [G.attackingChar, G.defendingChar]
     const myTeam = isGood ? GOOD_CHARS : EVIL_CHARS
 
     return (
         <div
-            className={`tile ${isPossibleMove ? 'possibleMove' : ''}`}
+            className={`tile ${(isPossibleMove || isPalantirRegion) ? 'possibleMove' : ''}`}
             key={tile.title}
             onClick={() => {
                 if (G.evilSpecial === 'PALANTIR') {
@@ -466,6 +467,9 @@ function getTile({phase, G, moves, myTurn, isGood, tile, ctx}
                     const occupantGood = Boolean(GOOD_CHARS[name])
                     const canSeeChar =
                         (occupantGood && isGood) || (!occupantGood && !isGood) || occupant?.reveal
+                    const isCrebain = G.evilSpecial === 'CREBAIN' && !isGood && occupantGood
+                    // const isKingReveal = G.goodSpecial === 'KING' && isGood && !occupantGood
+                    // const isPalantir
 
 
                     const highlight =
@@ -476,7 +480,7 @@ function getTile({phase, G, moves, myTurn, isGood, tile, ctx}
                                     : 'red'
                                 : occupant?.permaReveal ? occupantGood ? 'darkgreen' : 'darkred' : ''
                             : occupant?.permaReveal ? occupantGood ? 'darkgreen' : 'darkred' : ''
-                    const yellowHighlight = (occupantGood && isGood && G.swapOptions?.includes?.(name))
+                    const yellowHighlight = (occupantGood && isGood && G.swapOptions?.includes?.(name)) || isCrebain
 
                     return (
                         <div
