@@ -1098,6 +1098,19 @@ function preCheckShadowFax(G: GState) {
 
 }
 
+function processPalantir(G: GState) {
+    G.palantirRegions = []
+    Object.values(G.regions).forEach((region: Location) => {
+        if (region.title === 'MORDOR' || region.title === 'SHIRE') {
+            return
+        }
+
+        if (GOOD_CHARS[region.currentOccupants?.[0]]) {
+            G.palantirRegions.push(region.title)
+        }
+    })
+}
+
 function processGoodSpecialCard({G, events, card}: {
     G: GState,
     events: any,
@@ -1149,6 +1162,7 @@ function processEvilSpecialCard({G, card}: {
 }) {
     if (card.id === 5) {
         G.evilSpecial = 'PALANTIR'
+        processPalantir(G)
     } else if (card.id === 6) {
         const mordor = G.regions['MORDOR']
         const mordorPpl = mordor.currentOccupants
@@ -1698,6 +1712,7 @@ export const ConfrontationVariant = {
 
                     G.players['0'].specialCards = G.players['0'].specialCards.filter(card => card.id !== 5)
                     G.evilSpecial = 'DONE'
+                    G.palantirRegions = []
                 },
                 mordorRecall: ({G, playerID, events}: {
                     G: GState,
