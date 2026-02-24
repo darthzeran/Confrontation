@@ -113,6 +113,7 @@ body {
         height: 94%;
         flex-direction: column;
         overflow-y: auto;
+        gap: 2px;
 
         .resetChars{
             padding: 0.5rem;
