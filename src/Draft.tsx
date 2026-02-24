@@ -705,6 +705,7 @@ function startBattleLogic({G, playerID, events, ctx}: {
         G.evilPlayMagic = false
         G.goodCardLocked = false
         G.evilCardLocked = false
+        G.aragornSkip = null
 
         // check for win
         const winner = isTakeRingGameOver(G)
@@ -785,6 +786,7 @@ function endBattleLogic({G, events, ctx}: {
             G.evilPlayMagic = false
             G.goodCardLocked = false
             G.evilCardLocked = false
+            G.aragornSkip = null
 
             // track who the next player should be
             G.lastPlayerId = ctx.currentPlayer === '1' ? '0' : '1'
@@ -1249,7 +1251,7 @@ function processPowerFight({G, playerID, events, ctx, goodPowerBoost = 0, evilPo
 
 function preCheckShadowFax(G: GState) {
     const validMoves = []
-    const aliveGoodPlayers = Object.keys(GOOD_CHARS).filter(goodName => !G.characters[goodName].defeated)
+    const aliveGoodPlayers = Object.keys(GOOD_CHARS).filter(goodName => G.characters[goodName] && !G.characters[goodName].defeated)
 
     return aliveGoodPlayers.some(goodName => {
         // check for a forward move with no enemies in it
