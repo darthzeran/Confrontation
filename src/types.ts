@@ -48,6 +48,7 @@ export type Character = {
     permaReveal?: boolean,
     permaDefeated?: boolean,
     white?: boolean,
+    classic: boolean,
 }
 
 export type CharacterMap = Record<string, Character>
@@ -86,6 +87,7 @@ export type GState = {
     specialCardDefault?: boolean,
     specialCardsPer?: number,
     palantirNames?: string[],
+    palantirRegions?: string[],
     goodSpecial?: string,
     evilSpecial?: string,
     goodLightMode?: boolean | string,
