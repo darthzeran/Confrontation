@@ -3,7 +3,6 @@ import {BattleCard, CharacterMap, Location, SpecialCard} from './types';
 export const GOOD_INDEXES = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
 export const BAD_INDEXES = [15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
 
-
 export const LOCATIONS: Record<string, Location> = {
     MORDOR: {
         title: 'MORDOR',
@@ -319,21 +318,88 @@ export const EVIL_SPECIAL_CARDS: SpecialCard[] = [
     },
 ]
 
-export const GOOD_CHARS:CharacterMap = {
-    'FRODO': {
+
+export const GOOD_CHARS: CharacterMap = {
+    'CLASSICFRODO': {
         name: 'Frodo',
-        id: 'FRODO',
+        id: 'CLASSICFRODO',
         value: 1,
+        classic: true,
+        description: 'Frodo can retreat sideways when attacked, but not if he himself is the attacker. Frodo can only use his ability to retreat at the beginning of a battle, and not after cards have already been played. The retreat does not count as a normal move. Frodo can never retreat sideways in the mountains.'
+    },
+    'CLASSICSAM': {
+        name: 'Sam',
+        id: 'CLASSICSAM',
+        value: 2,
+        classic: true,
+        description: "If Sam is in the same region as Frodo, and  Frodo is attacked first, the Fellowship player  may reveal Sam and replace Frodo in the  battle. If Sam replaces Frodo in battle with the Orcs  (classic version), the Orcs immediately defeat Sam. Sam  is strength 5 when in the same region as Frodo, but the  Fellowship player must reveal both Frodo and Sam at  the beginning of a battle in order to prove Sam’s  strength. In battle against the Warg, the text on the  Fellowship characters (and therefore also Sam’s special  ability, including his ability to replace Frodo) is ignored.  Since the character limit in mountain regions is  one, Sam can never accompany Frodo  in the mountains"
+    },
+    'PIPPIN': {
+        name: 'Pippin',
+        id: 'PIPPIN',
+        value: 1,
+        classic: true,
+        description: "When Pippin attacks, he can retreat backwards to an adjacent region after both characters have been revealed for battle. Pippin  can only use his ability to retreat at the beginning of battle, and not after cards have already been played. The  retreat does not count as a normal move."
+    },
+    'MERRY': {
+        name: 'Merry',
+        id: 'MERRY',
+        value: 2,
+        classic: true,
+        description: "Merry defeats the Witch King immediately  before any cards are played. In battles  against all other enemies, the usual rules  apply."
+    },
+    'CLASSICGANDALF': {
+        name: 'Gandalf',
+        id: 'CLASSICGANDALF',
+        value: 5,
+        classic: true,
+        description: "In a battle against Gandalf, should  the battle come to playing cards,  the Sauron player must choose  and play his card first. After the Sauron  player has revealed his card, the  Fellowship player chooses and plays  his card (the Fellowship player must  play a card, even if the Sauron player  played his “Retreat” card). If the  Sauron player plays his “Magic”  card (see above), he must completely resolve it and reveal his new card  before the Fellowship player must  choose and play a card. "
+    },
+    'CLASSICARAGORN': {
+        name: 'Aragorn',
+        id: 'CLASSICARAGORN',
+        value: 4,
+        classic: true,
+        description: "Aragorn can move into any  adjacent region – forwards,  sideways, or backwards – if  he attacks at least one enemy character  by doing so. Otherwise, Aragorn can  only move forward into an adjacent  region like the other characters. Aragorn  can attack the Warg using his special ability, since he uses his ability before he enters  the region with the Warg. Aragorn cannot  attack sideways in the mountains."
+    },
+    'LEGOLAS': {
+        name: 'Legolas',
+        id: 'LEGOLAS',
+        value: 3,
+        classic: true,
+        description: "Legolas defeats the Flying Nazgûl  immediately, before any cards are  played. In battles against all other  enemies, the usual rules apply."
+    },
+    'GIMLI': {
+        name: 'Gimli',
+        id: 'GIMLI',
+        value: 3,
+        classic: true,
+        description: "Gimli defeats the Orcs immediately, before any cards are  played. In battles against all  other enemies, the usual rules apply"
+    },
+    'BOROMIR': {
+        name: 'Boromir',
+        id: 'BOROMIR',
+        value: 0,
+        classic: true,
+        description: "If Boromir is in a battle, both characters are  defeated immediately. The only exceptions  are the Warg (in which case Boromir’s ability is ignored for that battle) and when Boromir uses the  Tunnel of Moria while the Balrog occupies Caradhras (in  which case Boromir is defeated without a battle)."
+    },
+    //
+    'VARIANTFRODO': {
+        name: 'Frodo',
+        id: 'VARIANTFRODO',
+        value: 1,
+        classic: false,
         description: 'When in battle against Frodo, the Sauron\n' +
             'player’s Text Card is ignored. If Frodo is\n' +
             'defeated, Sam is the new Ringbearer. If the\n' +
             'Warg defeats Frodo, or if Sam has already been defeated,\n' +
             'the Sauron player immediately wins the game.'
     },
-    'SAM': {
+    'VARIANTSAM': {
         name: 'Sam',
-        id: 'SAM',
+        id: 'VARIANTSAM',
         value: 1,
+        classic: false,
         description: 'If attacked, the Strength value on Sam’s\n' +
             'character is equal to that of the Sauron character. Combat Cards and character special\n' +
             'abilities such as Gandalf’s are added to\n' +
@@ -344,14 +410,16 @@ export const GOOD_CHARS:CharacterMap = {
         name: 'Elrond',
         id: 'ELROND',
         value: 3,
+        classic: false,
         description: "When in battle against Elrond, the Sauron\n" +
             "Player’s “Eye of Sauron” and “Magic” cards\n" +
             "are ignored during that battle."
     },
-    'GANDALF': {
+    'VARIANTGANDALF': {
         name: 'Gandalf',
-        id: 'GANDALF',
+        id: 'VARIANTGANDALF',
         value: 5,
+        classic: false,
         description: "After Combat Cards have been revealed\n" +
             "during a battle taking place in a region adjacent to Gandalf’s (even a mountain region)\n" +
             "or in Gandalf’s own region, the Fellowship player may\n" +
@@ -362,10 +430,11 @@ export const GOOD_CHARS:CharacterMap = {
             "use his ability if the battle is against the Warg. Gandalf\n" +
             "may not use his ability if he attacks or is attacked himself. "
     },
-    'ARAGORN': {
+    'VARIANTARAGORN': {
         name: 'Aragorn',
-        id: 'ARAGORN',
+        id: 'VARIANTARAGORN',
         value: 4,
+        classic: false,
         description: "If attacked, Aragorn may decide that no\n" +
             "Combat Cards shall be used in the battle. "
     },
@@ -373,6 +442,7 @@ export const GOOD_CHARS:CharacterMap = {
         name: 'Treebeard',
         id: 'TREEBEARD',
         value: 4,
+        classic: false,
         description: "Treebeard’s Strength value is increased to 6\n" +
             "while he is in Fangorn. Treebeard may move\n" +
             "from any region on the board to Fangorn, as\n" +
@@ -383,6 +453,7 @@ export const GOOD_CHARS:CharacterMap = {
         name: 'Faramir',
         id: 'FARAMIR',
         value: 3,
+        classic: false,
         description: "When attacking, Faramir may retreat sideways. Faramir can only use his ability to\n" +
             "retreat at the beginning of a battle, and not\n" +
             "after cards have already been\n" +
@@ -393,6 +464,7 @@ export const GOOD_CHARS:CharacterMap = {
         name: 'Theoden',
         id: 'THEODEN',
         value: 2,
+        classic: false,
         description: "Theoden’s\n" +
             "Strength value\n" +
             "increases to 4\n" +
@@ -404,6 +476,7 @@ export const GOOD_CHARS:CharacterMap = {
         name: 'Smeagol',
         id: 'SMEAGOL',
         value: 0,
+        classic: false,
         description: "If Smeagol is attacked, and there are no\n" +
             "other Fellowship characters in his region, he\n" +
             "may switch positions with an adjacent\n" +
@@ -420,12 +493,97 @@ export const GOOD_CHARS:CharacterMap = {
             "attacked."
     },
 }
+export const GOOD_NAMES = {
+    CLASSICFRODO: 'CLASSICFRODO',
+    CLASSICSAM: 'CLASSICSAM',
+    PIPPIN: 'PIPPIN',
+    MERRY: 'MERRY',
+    CLASSICGANDALF: 'CLASSICGANDALF',
+    CLASSICARAGORN: 'CLASSICARAGORN',
+    LEGOLAS: 'LEGOLAS',
+    GIMLI: 'GIMLI',
+    BOROMIR: 'BOROMIR',
+    VARIANTFRODO: 'VARIANTFRODO',
+    VARIANTSAM: 'VARIANTSAM',
+    ELROND: 'ELROND',
+    VARIANTGANDALF: 'VARIANTGANDALF',
+    VARIANTARAGORN: 'VARIANTARAGORN',
+    TREEBEARD: 'TREEBEARD',
+    FARAMIR: 'FARAMIR',
+    THEODEN: 'THEODEN',
+    SMEAGOL: 'SMEAGOL',
+}
 
 export const EVIL_CHARS: CharacterMap = {
+    'BALROG': {
+        name: 'BALROG',
+        id: 'BALROG',
+        value: 5,
+        classic: true,
+        description: "If the Balrog is in the Caradhras region  when a Fellowship character uses the Tunnel  of Moria (moving from Eregion directly to  Fangorn), the Sauron player may reveal the Balrog to  instantly defeat the Fellowship character without a battle  (even Frodo). The Balrog itself remains unharmed. Even  Boromir cannot harm the Balrog in this situation. A  Fellowship character that is defeated by the Balrog when  traveling through the Tunnel of Moria never reaches  Fangorn, so any Sauron character in Fangorn is not  revealed."
+    },
+    'SHELOB': {
+        name: 'SHELOB',
+        id: 'SHELOB',
+        value: 5,
+        classic: true,
+        description: "If not in Gondor, and Shelob defeats a  Fellowship character, she is immediately  returned to Gondor. Upon returning, if there  are already two other Sauron characters in Gondor, or if  there are one or more Fellowship characters in Gondor,  she is immediately defeated and removed from the game."
+    },
+    'CLASSICWITCHKING': {
+        name: 'The Witch King',
+        id: 'CLASSICWITCHKING',
+        value: 5,
+        classic: true,
+        description: "The Witch King can move sideways into an  adjacent region if he attacks at least one  Fellowship character by doing so. Otherwise  he can only move forward into an adjacent region like  the other characters. He can never attack sideways in the  mountains. If the Witch King encounters Frodo in a sideways attack, Frodo may retreat sideways to the region  previously occupied by the Witch King, as long as no  other Sauron character is there."
+    },
+    'CLASSICFLYINGNAZGUL': {
+        name: 'The Flying Nazgul',
+        id: 'CLASSICFLYINGNAZGUL',
+        value: 3,
+        classic: true,
+        description: "The Flying Nazgûl can move to any region  on the board, as long as that region is occupied by a single Fellowhip character. This  can potentially allow a Flying Nazgûl to attack an adjacent mountain region. Otherwise, for moving into any  other region, the Flying Nazgûl is restricted to the normal movement rules."
+    },
+    'BLACKRIDER': {
+        name: 'The Black Rider',
+        id: 'BLACKRIDER',
+        value: 3,
+        classic: true,
+        description: "The Black Rider can move forward any  number of regions if he attacks at least one  Fellowship character by doing so. If the  Black Rider does not want to attack, then he can only  move forward into an adjacent region following the normal movement rules. The Black Rider may never move  into or through a region already containing the maximum number of Sauron characters, nor may he move  through a region occupied by one or more  Fellowship characters."
+    },
+    'CLASSICSARUMAN': {
+        name: 'Saruman',
+        id: 'CLASSICSARUMAN',
+        value: 4,
+        classic: true,
+        description: "Saruman can decide that no cards shall be  used in a battle in which he participates. If  no characters are defeated (or retreat) before  Combat Cards are played, then the Sauron player may  choose that the battle will be decided by the character’s  Strength values only. All other normal rules for battle  apply."
+    },
+    'CLASSICORCS': {
+        name: 'The Orcs',
+        id: 'CLASSICORCS',
+        value: 2,
+        classic: true,
+        description: "When the Orcs attack, they immediately  defeat the first Fellowship character attacked  in the region. Gimli immediately defeats the  Orcs and is therefore unharmed in any battle against  them. If the Orcs attack Boromir, both characters are  defeated. If there are additional Fellowship characters in  the region, the Orc’s special ability is ignored for those  subsequent battles. The Orcs have no special ability if  attacked by a Fellowship character.  If the Orcs attack Frodo first, Frodo may retreat sideways before the Orcs can defeat him. In this particular  case, this is still considered the first attack by the Orcs,  and they will have no special ability for the remainder of  the turn."
+    },
+    'WARG': {
+        name: 'WARG',
+        id: 'WARG',
+        value: 2,
+        classic: true,
+        description: "In battle against the Warg, the Fellowship  character’s text has no effect. Aragorn can  use his ability since he uses his ability in the  adjacent region, before the battle against the Warg."
+    },
+    'CAVETROLL': {
+        name: 'CAVE TROLL',
+        id: 'CAVETROLL',
+        value: 9,
+        classic: true,
+        description: "When it comes to playing cards in a battle  with the Cave Troll, the Sauron player’s card  is ignored. The Sauron player must still play  and discard a card, even though that card has no effect in  the battle."
+    },
+    //
     'URUKHAI': {
         name: 'The Uruk-Hai',
         id: 'URUKHAI',
         value: 4,
+        classic: false,
         description: "The Uruk-Hai can reveal themselves to\n" +
             "move forward any number of regions as\n" +
             "long as they end their movement in an\n" +
@@ -436,18 +594,20 @@ export const EVIL_CHARS: CharacterMap = {
             "characters. Otherwise, the Uruk-Hai are restricted to the\n" +
             "normal movement rules."
     },
-    'WITCHKING': {
+    'VARIANTWITCHKING': {
         name: 'The Witch King',
-        id: 'WITCHKING',
+        id: 'VARIANTWITCHKING',
         value: 2,
+        classic: false,
         description: "The Sauron player wins immediately if the\n" +
             "Witch King enters the Shire (regardless of\n" +
             "whether or not there are any enemy characters in the region)."
     },
-    'SARUMAN': {
+    'VARIANTSARUMAN': {
         name: 'Saruman',
-        id: 'SARUMAN',
+        id: 'VARIANTSARUMAN',
         value: 3,
+        classic: false,
         description: "Saruman defeats Gandalf immediately\n" +
             "before any cards are played. After the\n" +
             "Fellowship player reveals his card in a battle\n" +
@@ -458,16 +618,18 @@ export const EVIL_CHARS: CharacterMap = {
             "card, the Fellowship player’s original card is placed back\n" +
             "into his hand."
     },
-    'ORCS': {
+    'VARIANTORCS': {
         name: 'The Orcs',
-        id: 'ORCS',
+        id: 'VARIANTORCS',
         value: 3,
+        classic: false,
         description: "When the Orcs attack, their Strength value is increased to 6."
     },
     'WORMTONGUE': {
         name: 'Wormtongue',
         id: 'WORMTONGUE',
         value: -1,
+        classic: false,
         description: "If defeated, Wormtongue may retreat backwards into an empty, adjacent region.\n" +
             "Wormtongue may even retreat if he was\n" +
             "defeated by Boromir or the “Noble Sacrifice” card. If\n" +
@@ -478,6 +640,7 @@ export const EVIL_CHARS: CharacterMap = {
         name: 'The Mouth of Sauron',
         id: 'MOUTH',
         value: 3,
+        classic: false,
         description: "After cards are revealed in battle, the Sauron\n" +
             "player may replace his played card with his\n" +
             "“4” Strength Card (even if the “4” card is in\n" +
@@ -493,6 +656,7 @@ export const EVIL_CHARS: CharacterMap = {
         name: 'The Watcher',
         id: 'WATCHER',
         value: 6,
+        classic: false,
         description: "Once revealed, the Watcher remains\n" +
             "revealed for the remainder of the game and\n" +
             "may not move forward. The Watcher may\n" +
@@ -500,10 +664,11 @@ export const EVIL_CHARS: CharacterMap = {
             "or be placed back in Mordor with the “Recall to Mordor”\n" +
             "Special Cards (but remains revealed in both instances)."
     },
-    'FLYINGNAZGUL': {
+    'VARIANTFLYINGNAZGUL': {
         name: 'The Flying Nazgul',
-        id: 'FLYINGNAZGUL',
+        id: 'VARIANTFLYINGNAZGUL',
         value: 5,
+        classic: false,
         description: "The Flying Nazgul may move forward,\n" +
             "skipping over one region to attack. It may\n" +
             "even skip over a region that contains the\n" +
@@ -516,6 +681,7 @@ export const EVIL_CHARS: CharacterMap = {
         name: 'Gollum',
         id: 'GOLLUM',
         value: 1,
+        classic: false,
         description: "When in battle, Gollum may retreat forward.\n" +
             "Gollum can only use his ability to retreat at\n" +
             "the beginning of a battle, and not after cards\n" +
@@ -524,5 +690,79 @@ export const EVIL_CHARS: CharacterMap = {
             "character has already retreated."
     },
 }
+export const EVIL_NAMES = {
+    BALROG: "BALROG",
+    SHELOB: "SHELOB",
+    CLASSICWITCHKING: "CLASSICWITCHKING",
+    CLASSICFLYINGNAZGUL: "CLASSICFLYINGNAZGUL",
+    BLACKRIDER: "BLACKRIDER",
+    CLASSICSARUMAN: "CLASSICSARUMAN",
+    CLASSICORCS: "CLASSICORCS",
+    WARG: "WARG",
+    CAVETROLL: "CAVETROLL",
+    URUKHAI: "URUKHAI",
+    VARIANTWITCHKING: "VARIANTWITCHKING",
+    VARIANTSARUMAN: "VARIANTSARUMAN",
+    VARIANTORCS: "VARIANTORCS",
+    WORMTONGUE: "WORMTONGUE",
+    MOUTH: "MOUTH",
+    WATCHER: "WATCHER",
+    VARIANTFLYINGNAZGUL: "VARIANTFLYINGNAZGUL",
+    GOLLUM: "GOLLUM"
+}
 
+export const DRAFT_PAIRS: Record<string, string> = {
+    'WARG': 'GOLLUM',
+    'GOLLUM': 'WARG',
 
+    'GIMLI': 'THEODEN',
+    'THEODEN': 'GIMLI',
+
+    'MERRY': 'FARAMIR',
+    'FARAMIR': 'MERRY',
+
+    'BALROG': 'URUKHAI',
+    'URUKHAI': 'BALROG',
+
+    'PIPPIN': 'SMEAGOL',
+    'SMEAGOL': 'PIPPIN',
+
+    'BOROMIR': 'TREEBEARD',
+    'TREEBEARD': 'BOROMIR',
+
+    'LEGOLAS': 'ELROND',
+    'ELROND': 'LEGOLAS',
+
+    'SHELOB': 'WORMTONGUE',
+    'WORMTONGUE': 'SHELOB',
+
+    'CAVETROLL': 'WATCHER',
+    'WATCHER': 'CAVETROLL',
+
+    'BLACKRIDER': 'MOUTH',
+    'MOUTH': 'BLACKRIDER',
+
+    'CLASSICFRODO': 'VARIANTFRODO',
+    'VARIANTFRODO': 'CLASSICFRODO',
+
+    'CLASSICSAM': 'VARIANTSAM',
+    'VARIANTSAM': 'CLASSICSAM',
+
+    'CLASSICGANDALF': 'VARIANTGANDALF',
+    'VARIANTGANDALF': 'CLASSICGANDALF',
+
+    'CLASSICARAGORN': 'VARIANTARAGORN',
+    'VARIANTARAGORN': 'CLASSICARAGORN',
+
+    'CLASSICWITCHKING': 'VARIANTWITCHKING',
+    'VARIANTWITCHKING': 'CLASSICWITCHKING',
+
+    'CLASSICFLYINGNAZGUL': 'VARIANTFLYINGNAZGUL',
+    'VARIANTFLYINGNAZGUL': 'CLASSICFLYINGNAZGUL',
+
+    'CLASSICSARUMAN': 'VARIANTSARUMAN',
+    'VARIANTSARUMAN': 'CLASSICSARUMAN',
+
+    'CLASSICORCS': 'VARIANTORCS',
+    'VARIANTORCS': 'CLASSICORCS',
+}
