@@ -4,15 +4,15 @@ import './Home.css'
 export default function Home({onCreate, onJoin}) {
     const [showModal, setShowModal] = useState(true)
     const [selectedOption, setSelectedOption] = useState(null)
-    const [isClassic, setIsClassic] = useState(true)
+    const [mode, setMode] = useState('DRAFT')
 
-    const getText = (txt) => isClassic ? txt : <i>{txt}</i>
+    const getText = (txt) => mode === 'CLASSIC' ? txt : mode === 'VARIANT' ?  <i>{txt}</i> : <strong>{txt}</strong>
 
     const handleChoice = (choice) => {
         setSelectedOption(choice)
         // Simulate game start after choice
         setTimeout(() => {
-            onCreate(choice === 'good', isClassic)
+            onCreate(choice === 'good', mode)
             setShowModal(false)
         }, 1000)
     }
@@ -21,7 +21,7 @@ export default function Home({onCreate, onJoin}) {
         <div className="game-home">
             <header className="game-banner">
                 <div className="banner-content">
-                    <h1 className="banner-title">{getText('LOTR: The Confrontation')}</h1>
+                    <h1 className="banner-title">{getText('LOTR: The DRAFT')}</h1>
                     <div className="banner-subtitle">
                         <span className="good-text">{getText('The Fellowship')}</span>
                         <span className="vs">{getText('VS')}</span>
@@ -95,15 +95,36 @@ export default function Home({onCreate, onJoin}) {
                                 <div className="dot"></div>
                                 <div className="dot"></div>
                             </div>
-                        </div>) : <div style={{color: 'white', textAlign: 'center', cursor: 'pointer'}}>
-                            <button
-                                style={{
-                                    padding: '4px 8px',
-                                }}
-                                onClick={() => setIsClassic(prev => !prev)}>
-                                {getText(isClassic ? 'Go Variant it up' : 'Go Classic')}
-                            </button>
-                        </div>}
+                        </div>) : (
+                            <div style={{color: 'white', textAlign: 'center', cursor: 'pointer'}}>
+                                {/*<div style={{ display: 'flex', gap: '40px', justifyContent: 'center' }}>*/}
+                                {/*    <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>*/}
+                                {/*        <input*/}
+                                {/*            type="checkbox"*/}
+                                {/*            checked={mode === 'CLASSIC'}*/}
+                                {/*            onChange={(e) => setMode('CLASSIC')}*/}
+                                {/*        />*/}
+                                {/*        <span>Classic</span>*/}
+                                {/*    </label>*/}
+                                {/*    <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>*/}
+                                {/*        <input*/}
+                                {/*            type="checkbox"*/}
+                                {/*            checked={mode === 'VARIANT'}*/}
+                                {/*            onChange={(e) => setMode('VARIANT')}*/}
+                                {/*        />*/}
+                                {/*        <span>Variant</span>*/}
+                                {/*    </label>*/}
+                                {/*    <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>*/}
+                                {/*        <input*/}
+                                {/*            type="checkbox"*/}
+                                {/*            checked={mode === 'DRAFT'}*/}
+                                {/*            onChange={(e) => setMode('DRAFT')}*/}
+                                {/*        />*/}
+                                {/*        <span>Draft</span>*/}
+                                {/*    </label>*/}
+                                {/*</div>*/}
+                        </div>
+                        )}
                     </div>
                 </div>)}
 
