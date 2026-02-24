@@ -8,7 +8,7 @@ import {
     EVIL_SPECIAL_CARDS,
     GOOD_CARDS,
     GOOD_INDEXES,
-    GOOD_SPECIAL_CARDS, GOOD_NAMES,
+    GOOD_SPECIAL_CARDS, GOOD_NAMES, CLASSIC_GOOD_CHARS, CLASSIC_EVIL_CHARS, VARIANT_GOOD_CHARS, VARIANT_EVIL_CHARS,
 } from './consts.ts'
 import {PIECE_IMAGES} from './imgs'
 import {toast} from 'react-toastify'
@@ -18,9 +18,18 @@ function getIsGood(id: string) {
     return id === '1'
 }
 
-function getChars({good}: { good: boolean }): CharacterMap {
-    return good ? GOOD_CHARS : EVIL_CHARS
+function getChars({mode, good}: { mode:string, good: boolean }): CharacterMap {
+    if(mode === 'CLASSIC'){
+        return good ? CLASSIC_GOOD_CHARS : CLASSIC_EVIL_CHARS
+    }
+    else if(mode === 'VARIANT'){
+        return good ? VARIANT_GOOD_CHARS : VARIANT_EVIL_CHARS
+    }
+    else{
+        return good ? GOOD_CHARS : EVIL_CHARS
+    }
 }
+
 
 export function ConfrontationBoard({ctx, G, moves, playerID, matchID}: {
     G: GState,
@@ -35,6 +44,8 @@ export function ConfrontationBoard({ctx, G, moves, playerID, matchID}: {
             toast.success(<div dangerouslySetInnerHTML={{__html: G.messages.join('<br />')}}/>)
         }
     }, [G.messages])
+
+    const mode = matchID?.[0] === 'a' ? 'CLASSIC' : matchID?.[0] === 'b' ? 'VARIANT' : 'DRAFT'
 
     return (
         <div className="app">
@@ -56,6 +67,7 @@ export function ConfrontationBoard({ctx, G, moves, playerID, matchID}: {
                     G={G}
                     moves={moves}
                     ctx={ctx}
+                    mode={mode}
                 />
 
                 <main className="main-content">
@@ -67,8 +79,9 @@ export function ConfrontationBoard({ctx, G, moves, playerID, matchID}: {
                         moves,
                         G,
                         ctx,
+                        mode
                     })}
-                    <Deaths isGood={getIsGood(playerID)} G={G} />
+                    <Deaths isGood={getIsGood(playerID)} G={G} mode={mode}/>
                 </main>
 
                 <RightPanel history={G.history.toReversed()} G={G} />
@@ -360,12 +373,13 @@ function ShowCards({card, setCard, cards, special = false}) {
     )
 }
 
-function Deaths({G, isGood}: {
+function Deaths({G, isGood, mode}: {
     G: GState,
     isGood: boolean,
+    mode: string,
 }) {
-    const myChars = Object.keys(getChars({ good: isGood}))
-    const enemyChars = Object.keys(getChars({ good: !isGood}))
+    const myChars = Object.keys(getChars({ mode, good: isGood}))
+    const enemyChars = Object.keys(getChars({ mode, good: !isGood}))
 
     const deadAllies = myChars.filter((name) => G.characters[name]?.defeated)
     const deadEnemies = enemyChars.filter((name) => G.characters[name]?.defeated)
@@ -420,7 +434,7 @@ function SpecialMoves({tileId}) {
     return null
 }
 
-function getTile({phase, G, moves, myTurn, isGood, tile, ctx}: {
+function getTile({phase, G, moves, myTurn, isGood, tile, ctx, mode}: {
     phase: string,
     G: GState,
     moves: any,
@@ -428,6 +442,7 @@ function getTile({phase, G, moves, myTurn, isGood, tile, ctx}: {
     isGood: boolean,
     tile: Location,
     ctx: any,
+    mode: string,
 }) {
     const currentOccupants = G.regions?.[tile.title]?.currentOccupants || []
     const charSlots = new Array(Math.max(tile.maxChars - currentOccupants.length, 0)).fill(null)
@@ -442,7 +457,7 @@ function getTile({phase, G, moves, myTurn, isGood, tile, ctx}: {
     const isPalantirRegion = !isGood && (G.palantirRegions || []).includes(tile.title)
 
     const fighters = [G.attackingChar, G.defendingChar]
-    const myTeam = getChars({ good: isGood})
+    const myTeam = getChars({ mode, good: isGood})
 
     return (
         <div
@@ -471,8 +486,8 @@ function getTile({phase, G, moves, myTurn, isGood, tile, ctx}: {
                 {currentOccupants.map((name, index) => {
                     const gameOver = Boolean(ctx.gameover)
 
-                    const goodChars = getChars({ good: true})
-                    const badChars = getChars({ good: false})
+                    const goodChars = getChars({ mode,good: true})
+                    const badChars = getChars({ mode,good: false})
 
                     const occupant = G.characters[name]
                     const occupantGood = Boolean(goodChars[name])
@@ -559,7 +574,7 @@ function getTile({phase, G, moves, myTurn, isGood, tile, ctx}: {
     )
 }
 
-function getBoard({G, moves, tiles, phase, myTurn, ctx, isGood}: {
+function getBoard({G, moves, tiles, phase, myTurn, ctx, isGood, mode}: {
     G: GState,
     moves: any,
     tiles: Location[],
@@ -567,11 +582,12 @@ function getBoard({G, moves, tiles, phase, myTurn, ctx, isGood}: {
     myTurn: boolean,
     ctx: any,
     isGood: boolean,
+    mode: string,
 }) {
     const indexes = isGood ? GOOD_INDEXES : BAD_INDEXES
     const regions = []
     for (let i = 0; i < 16; i++) {
-        regions.push(getTile({G, ctx, isGood, myTurn, phase, moves, tile: tiles[indexes[i]]}))
+        regions.push(getTile({G, ctx, isGood, myTurn, phase, moves, tile: tiles[indexes[i]], mode}))
     }
     return regions
 }
@@ -927,11 +943,12 @@ function LeftBattlePanel({iAmGood, playerID, G, moves, ctx, myTurn}: {
     </>
 }
 
-function LeftMovePhase({G, iAmGood, myTurn, moves}: {
+function LeftMovePhase({G, iAmGood, myTurn, moves, mode}: {
     G: GState,
     iAmGood: boolean,
     myTurn: boolean,
     moves: any,
+    mode: string,
 }) {
     const mySelectedCards = G.players[iAmGood ? '1' : '0'].specialCards || []
     const cardChosen = iAmGood ? G.goodSpecial : G.evilSpecial
@@ -945,7 +962,7 @@ function LeftMovePhase({G, iAmGood, myTurn, moves}: {
                 : G.mordorDarkMode === true
                     ? 'Performing Extra Move'
                     : (!iAmGood && G.kingRevealed && G.kingRevealed !== true)
-                        ? `You MUST move ${getChars({ good: false})[G.kingRevealed].name}`
+                        ? `You MUST move ${getChars({ mode, good: false})[G.kingRevealed].name}`
                         : (
                             <span>{!G?.attackingChar ? 'Select Piece' : 'Select Region'}</span>
                         )}
@@ -988,13 +1005,14 @@ function LeftMovePhase({G, iAmGood, myTurn, moves}: {
     </>
 }
 
-function LeftPanel({phase, playerID, G, moves, ctx, myTurn}: {
+function LeftPanel({phase, playerID, G, moves, ctx, myTurn, mode}: {
     moves: any,
     G: GState,
     phase: string,
     playerID: string,
     ctx: any,
     myTurn: boolean,
+    mode: string,
 }) {
     const iAmGood = getIsGood(playerID)
     const placeStage = ctx.activePlayers?.[0]
@@ -1020,6 +1038,7 @@ function LeftPanel({phase, playerID, G, moves, ctx, myTurn}: {
                     G={G}
                     moves={moves}
                     myTurn={myTurn}
+                    mode={mode}
                 />
             ) : phase === 'battle' ? (
                 <LeftBattlePanel
