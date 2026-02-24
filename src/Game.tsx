@@ -1724,7 +1724,7 @@ export const ConfrontationVariant = {
                     if (isGood || Boolean(GOOD_CHARS[charId]) || G.evilSpecial !== 'MORDORRECALL') {
                         return INVALID_MOVE
                     }
-                    updateHistory(G, `Evil recalls ${EVIL_CHARS[charId].name} to Mordor`)
+                    updateHistory(G, `Evil recalls someone to Mordor`)
 
                     // leave current tile
                     removeCharacter({G, unitIdToRemove: charId, tileId})
