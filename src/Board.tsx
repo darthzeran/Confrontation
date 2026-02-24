@@ -8,8 +8,7 @@ import {
     EVIL_SPECIAL_CARDS,
     GOOD_CARDS,
     GOOD_INDEXES,
-    GOOD_SPECIAL_CARDS, 
-    GOOD_NAMES,
+    GOOD_SPECIAL_CARDS, GOOD_NAMES,
 } from './consts.ts'
 import {PIECE_IMAGES} from './imgs'
 import {toast} from 'react-toastify'
@@ -470,19 +469,21 @@ function getTile({phase, G, moves, myTurn, isGood, tile, ctx}: {
             <div className={'tileHeader'}>{tile?.description}</div>
             <div className={`charSlots ${tile.maxChars > 3 ? 'wrap' : ''}`}>
                 {currentOccupants.map((name, index) => {
+                    const gameOver = Boolean(ctx.gameover)
+
                     const goodChars = getChars({ good: true})
                     const badChars = getChars({ good: false})
 
                     const occupant = G.characters[name]
                     const occupantGood = Boolean(goodChars[name])
                     const canSeeChar =
-                        (occupantGood && isGood) || (!occupantGood && !isGood) || occupant?.reveal
+                        ((occupantGood && isGood) || (!occupantGood && !isGood) || occupant?.reveal) || gameOver
                     const isCrebain = G.evilSpecial === 'CREBAIN' && !isGood && occupantGood
 
 
                     const highlight =
                         canSeeChar ?
-                            fighters.includes(occupant.id)
+                            (fighters.includes(occupant.id) || (gameOver && !myTeam[name]))
                                 ? occupantGood
                                     ? 'green'
                                     : 'red'
@@ -538,7 +539,7 @@ function getTile({phase, G, moves, myTurn, isGood, tile, ctx}: {
                             {highlight && G.defendingChar && fighters.includes(occupant.id) && (
                                 <div className={'powerDiv ' + highlight}>{occupant.value}</div>
                             )}
-                            {canSeeChar && (
+                            {(canSeeChar|| occupant?.permaReveal) && (
                                 <div className={'typeDiv '}>{(occupant.classic ? 'C' : 'V')}</div>
                             )}
                         </div>
