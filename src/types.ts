@@ -54,6 +54,7 @@ export type Character = {
 export type CharacterMap = Record<string, Character>
 
 export type GState = {
+    matchID?: string,
     badState?: string,
     history: string[],
     messages: string[],
