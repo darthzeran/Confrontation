@@ -4,7 +4,8 @@ import './Home.css'
 export default function Home({onCreate, onJoin}) {
     const [showModal, setShowModal] = useState(true)
     const [selectedOption, setSelectedOption] = useState(null)
-    const [mode, setMode] = useState('DRAFT')
+    // const [mode, setMode] = useState('DRAFT')
+    const mode = 'DRAFT'
 
     const getText = (txt) => mode === 'CLASSIC' ? txt : mode === 'VARIANT' ?  <i>{txt}</i> : <strong>{txt}</strong>
 
