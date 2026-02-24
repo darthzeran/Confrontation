@@ -1143,6 +1143,7 @@ function processGoodSpecialCard({G, events, card}: {
 
             G.players['1'].specialCards = G.players['1'].specialCards.filter(card => card.id !== 2)
             G.goodSpecial = null
+            updateHistory(G, 'Yes, that was what they used to call me - Gandalf the Grey. I am Gandalf the White.')
             events.endTurn()
         }
     } else if (card.id === 3) {
