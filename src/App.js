@@ -27,7 +27,8 @@ const App = () => {
     const [matchId, setMatchId] = useState('')
     const [playerId, setPlayerId] = useState('')
 
-    // const classicGame = matchId?.[0] === 'a'
+    const classicGame = matchId?.[0] === 'a'
+    const variantGame = matchId?.[0] === 'b'
 
     return (
         <div>
@@ -48,8 +49,8 @@ const App = () => {
             {!matchId ? (
                 <div>
                     <Home
-                        onCreate={async (isEvil, isClassic) => {
-                            const newMatchId = (isClassic ? 'a' : 'b') + generateMatchId()
+                        onCreate={async (isEvil, mode) => {
+                            const newMatchId = (mode === 'CLASSIC' ? 'a' : mode === 'VARIANT' ? 'b' : 'c') + generateMatchId()
                             await navigator.clipboard.writeText(`${newMatchId}${isEvil ? '0' : '1'}`);
                             setMatchId(newMatchId)
                             setPlayerId(isEvil ? '1' : '0')
