@@ -53,7 +53,7 @@ body {
 .left-panel, .right-panel {
     background: rgba(255, 255, 255, 0.9);
     border-radius: 12px;
-    padding: 1.5rem;
+    padding: 8px 8px 8px 16px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -110,8 +110,9 @@ body {
 
     .characterList {
         display: flex;
-        height: 96%;
+        height: 94%;
         flex-direction: column;
+        overflow-y: auto;
 
         .resetChars{
             padding: 0.5rem;
@@ -284,6 +285,10 @@ body {
         height: 90%;
     }
 
+    .characterList{
+        height: 100%;
+    }
+
     .history-holder{
         overflow-y: auto;
         .history{
@@ -341,17 +346,17 @@ body {
             border-radius: 50px;
         }
     }
-        .deathDiv::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(128, 128, 128, 0.5);
-            border-radius: 4px;
-            pointer-events: none;
-        }
+    .deathDiv::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(128, 128, 128, 0.5);
+        border-radius: 4px;
+        pointer-events: none;
+    }
 
     .myDeathDiv{
         display: flex;
@@ -457,6 +462,14 @@ body {
                     &.red{
                         color: red;
                     }
+                }
+
+                .typeDiv{
+                    position: absolute;
+                    top: 0;
+                    left: 40%;
+                    font-size: 1.3rem;
+                    font-weight: 600;
                 }
             }
 
