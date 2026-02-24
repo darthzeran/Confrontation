@@ -1356,8 +1356,12 @@ export const ConfrontationVariant = {
                                 G: GState,
                                 playerID: string
                             }, charId: string, tileId: string) => {
+                                const isGood = isSpecifiedPlayerGood(playerID);
+                                if ((isGood && G.goodReady) || (!isGood && G.evilReady)) {
+                                    return INVALID_MOVE
+                                }
+                                
                                 const char = G.characters[charId]
-
                                 removeCharacter({G, unitIdToRemove: charId, tileId})
                                 G.players[playerID].charactersToPlace = [
                                     ...G.players[playerID].charactersToPlace,
