@@ -27,8 +27,8 @@ const App = () => {
     const [matchId, setMatchId] = useState('')
     const [playerId, setPlayerId] = useState('')
 
-    const classicGame = matchId?.[0] === 'a'
-    const variantGame = matchId?.[0] === 'b'
+    // const classicGame = matchId?.[0] === 'a'
+    // const variantGame = matchId?.[0] === 'b'
 
     return (
         <div>
