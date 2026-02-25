@@ -114,7 +114,8 @@ body {
         display: flex;
         height: 94%;
         flex-direction: column;
-        overflow-y: auto;
+        overflow-y: auto;   
+        overflow-x: hidden;
         gap: 2px;
 
         .resetChars{
