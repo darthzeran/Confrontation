@@ -8,7 +8,13 @@ import {
     EVIL_SPECIAL_CARDS,
     GOOD_CARDS,
     GOOD_INDEXES,
-    GOOD_SPECIAL_CARDS, GOOD_NAMES, CLASSIC_GOOD_CHARS, CLASSIC_EVIL_CHARS, VARIANT_GOOD_CHARS, VARIANT_EVIL_CHARS,
+    GOOD_SPECIAL_CARDS,
+    GOOD_NAMES,
+    CLASSIC_GOOD_CHARS,
+    CLASSIC_EVIL_CHARS,
+    VARIANT_GOOD_CHARS,
+    VARIANT_EVIL_CHARS,
+    EVIL_NAMES,
 } from './consts.ts'
 import {PIECE_IMAGES} from './imgs'
 import {toast} from 'react-toastify'
@@ -1118,6 +1124,7 @@ function CardsDisplay({G, ctx, moves, playerID, iAmGood, isMagicChoice}: {
         (!iAmGood && gandalfInPlay && G.evilPlayMagic) ||
         (iAmGood && gandalfInPlay && G.evilCard && G.goodPlayMagic)
 
+
     const evilCardDetails = G.evilCard
         ? G.evilCard.type === 'text'
             ? G.evilCard.title
@@ -1129,7 +1136,6 @@ function CardsDisplay({G, ctx, moves, playerID, iAmGood, isMagicChoice}: {
 
     const waitingOnEvilToReplaceMagic =
         iAmGood && ctx.activePlayers?.[playerID] === 'pickMagicCards' && !G.evilCardLocked
-
 
     return (
         <>
