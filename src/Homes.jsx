@@ -4,10 +4,9 @@ import './Home.css'
 export default function Home({onCreate, onJoin}) {
     const [showModal, setShowModal] = useState(true)
     const [selectedOption, setSelectedOption] = useState(null)
-    // const [mode, setMode] = useState('DRAFT')
-    const mode = 'DRAFT'
+    const [mode, setMode] = useState('DRAFT')
 
-    const getText = (txt) => mode === 'CLASSIC' ? txt : mode === 'VARIANT' ?  <i>{txt}</i> : <strong>{txt}</strong>
+    const getText = (txt) => mode === 'CLASSIC' ? txt : mode === 'VARIANT' ? <i>{txt}</i> : <strong>{txt}</strong>
 
     const handleChoice = (choice) => {
         setSelectedOption(choice)
@@ -98,33 +97,36 @@ export default function Home({onCreate, onJoin}) {
                             </div>
                         </div>) : (
                             <div style={{color: 'white', textAlign: 'center', cursor: 'pointer'}}>
-                                {/*<div style={{ display: 'flex', gap: '40px', justifyContent: 'center' }}>*/}
-                                {/*    <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>*/}
-                                {/*        <input*/}
-                                {/*            type="checkbox"*/}
-                                {/*            checked={mode === 'CLASSIC'}*/}
-                                {/*            onChange={(e) => setMode('CLASSIC')}*/}
-                                {/*        />*/}
-                                {/*        <span>Classic</span>*/}
-                                {/*    </label>*/}
-                                {/*    <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>*/}
-                                {/*        <input*/}
-                                {/*            type="checkbox"*/}
-                                {/*            checked={mode === 'VARIANT'}*/}
-                                {/*            onChange={(e) => setMode('VARIANT')}*/}
-                                {/*        />*/}
-                                {/*        <span>Variant</span>*/}
-                                {/*    </label>*/}
-                                {/*    <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>*/}
-                                {/*        <input*/}
-                                {/*            type="checkbox"*/}
-                                {/*            checked={mode === 'DRAFT'}*/}
-                                {/*            onChange={(e) => setMode('DRAFT')}*/}
-                                {/*        />*/}
-                                {/*        <span>Draft</span>*/}
-                                {/*    </label>*/}
-                                {/*</div>*/}
-                        </div>
+                                <div style={{display: 'flex', gap: '40px', justifyContent: 'center'}}>
+                                    <label
+                                        style={{display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer'}}>
+                                        <input
+                                            type="checkbox"
+                                            checked={mode === 'CLASSIC'}
+                                            onChange={(e) => setMode('CLASSIC')}
+                                        />
+                                        <span>Classic</span>
+                                    </label>
+                                    <label
+                                        style={{display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer'}}>
+                                        <input
+                                            type="checkbox"
+                                            checked={mode === 'VARIANT'}
+                                            onChange={(e) => setMode('VARIANT')}
+                                        />
+                                        <span>Variant</span>
+                                    </label>
+                                    <label
+                                        style={{display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer'}}>
+                                        <input
+                                            type="checkbox"
+                                            checked={mode === 'DRAFT'}
+                                            onChange={(e) => setMode('DRAFT')}
+                                        />
+                                        <span>Draft</span>
+                                    </label>
+                                </div>
+                            </div>
                         )}
                     </div>
                 </div>)}
