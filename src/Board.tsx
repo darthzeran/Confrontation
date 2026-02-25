@@ -60,6 +60,7 @@ export function ConfrontationBoard({ctx, G, moves, playerID, matchID}: {
 
     useEffect(() => {
         moves.setMatchId(matchID)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [matchID])
 
     return (
