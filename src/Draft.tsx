@@ -1743,7 +1743,9 @@ export const ConfrontationDraft = {
                                     G.goodReady = true
                                 }
                                 if (G.evilReady && G.goodReady) {
-                                    declareChars(G)
+                                    if(getMode(G.matchID) === 'DRAFT'){
+                                        declareChars(G)
+                                    }
                                     events.setActivePlayers({
                                         all: 'specialCards',
                                     })
