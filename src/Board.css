@@ -106,6 +106,7 @@ body {
             margin-bottom: 0.5rem;
             width: 100%;
             background: lightgrey;
+            cursor: pointer;
         }
     }
 
@@ -120,6 +121,7 @@ body {
             padding: 0.5rem;
             margin-bottom: 0.5rem;
             background: lightgrey;
+            cursor: pointer;
         }
 
         .specialTab{
@@ -179,6 +181,7 @@ body {
                     width: 85%;
                     height: 50%;
                     background: lightgrey;
+                    cursor: pointer;
                 }
             }
         }
@@ -201,6 +204,7 @@ body {
 
             button{
                 background: lightgrey;
+                cursor: pointer;
             }
         }
 
@@ -209,6 +213,7 @@ body {
             padding: 4px 8px;
             margin: 8px 0;
             background: lightgrey;
+            cursor: pointer;
         }
 
         .cardFullDetails{
@@ -223,6 +228,7 @@ body {
             .goodActionBtn{
                 height: 5vh;
                 background: lightgrey;
+                cursor: pointer;
             }
         }
 
@@ -255,6 +261,7 @@ body {
             }
 
             button{
+                cursor: pointer;
                 background: lightgrey;
             }
         }
@@ -277,6 +284,7 @@ body {
             height: 15%;
             width: 100%;
             background: lightgrey;
+            cursor: pointer;
         }
     }
 }
@@ -317,7 +325,7 @@ body {
 }
 
 .info-box {
-    background: rgba(102, 126, 234, 0.15);
+    background: lightgray;
     padding: 1rem;
     border-radius: 8px;
     text-align: center;
