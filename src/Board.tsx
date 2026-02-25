@@ -694,9 +694,12 @@ function LeftPlacePiecesPanel({moves, G, iAmGood, playerID}: {
                 <button className={'resetChars'} onClick={() => moves.reset()}>
                     Reset Pieces
                 </button>
-                <button className={'resetChars'} onClick={() => moves.ready()}>
-                    READY
-                </button>
+                {Object.keys(G.characters).length > 0 && (
+                    <button className={'resetChars'} onClick={() => moves.ready()}>
+                        READY
+                    </button>
+                )}
+
             </div>
         ) : ''}
     </>
@@ -994,11 +997,12 @@ function LeftMovePhase({G, iAmGood, myTurn, moves}: {
             <div>
                 <div> or select a Special Card</div>
                 <div className={'chooseSpecial'}>{mySelectedCards.map(card => {
+                    const activeGandalfName = G.characters[GOOD_NAMES.CLASSICGANDALF] ? GOOD_NAMES.CLASSICGANDALF : GOOD_NAMES.VARIANTGANDALF
                     return <button
                         key={card.title}
                         className={'specialSelectBtn'}
                         onClick={() => moves.chooseSpecialCard(card)}
-                        disabled={card.id === 4 || (card.id === 2 && (!G.characters[GOOD_NAMES.CLASSICGANDALF]?.defeated || !G.characters[GOOD_NAMES.VARIANTGANDALF]?.defeated))}
+                        disabled={card.id === 4 || (card.id === 2 && !G.characters[activeGandalfName]?.defeated)}
                     >
                         <div>{card.title}-</div>
                         <div>{card.description}</div>
