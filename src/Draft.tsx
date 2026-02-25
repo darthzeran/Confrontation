@@ -1,4 +1,6 @@
 import {
+    CLASSIC_EVIL_CHARS,
+    CLASSIC_GOOD_CHARS,
     DRAFT_PAIRS,
     EVIL_CARDS,
     EVIL_CHARS,
@@ -9,10 +11,26 @@ import {
     GOOD_NAMES,
     GOOD_SPECIAL_CARDS,
     LOCATIONS,
+    VARIANT_EVIL_CHARS,
+    VARIANT_GOOD_CHARS,
 } from './consts.ts'
 import {Character, CharacterMap, Location, GState, SpecialCard, BattleCard} from './types';
 import {INVALID_MOVE} from 'boardgame.io/core'
 // const INVALID_MOVE = undefined
+
+function getChars({mode, isGood}: { mode: string, isGood: boolean }): CharacterMap {
+    if (mode === 'CLASSIC') {
+        return isGood ? CLASSIC_GOOD_CHARS : CLASSIC_EVIL_CHARS
+    } else if (mode === 'VARIANT') {
+        return isGood ? VARIANT_GOOD_CHARS : VARIANT_EVIL_CHARS
+    } else {
+        return isGood ? GOOD_CHARS : EVIL_CHARS
+    }
+}
+
+function getMode(matchId: string) {
+    return matchId?.[0] === 'a' ? 'CLASSIC' : matchId?.[0] === 'b' ? 'VARIANT' : 'DRAFT'
+}
 
 function isSpecifiedPlayerGood(id: string) {
     return id === '1'
@@ -1273,7 +1291,6 @@ function preCheckShadowFax(G: GState) {
 
         return validMoves.length > 1
     })
-
 }
 
 function processPalantir(G: GState) {
@@ -1484,18 +1501,20 @@ function declareChars(G: GState) {
     const goodChars = []
     const evilChars = []
 
+    const mode = getMode(G.matchID) === 'DRAFT'
+
     Object.values(G.characters).forEach((char: Character) => {
         if (GOOD_NAMES[char.id]) {
-            goodChars.push(`${char.name}-${char.classic ? 'Classic' : 'Variant'}`)
+            goodChars.push(`${char.name}-${mode ? (char.classic ? 'Classic' : 'Variant') : ''}`)
         } else {
-            evilChars.push(`${char.name}-${char.classic ? 'Classic' : 'Variant'}`)
+            evilChars.push(`${char.name}-${mode ? (char.classic ? 'Classic' : 'Variant') : ''}`)
         }
     })
 
     G.messages.push('Good chooses:' + goodChars.join(',\n'))
     G.messages.push('Evil chooses:' + evilChars.join(',\n'))
 
-    G.history.push( ...goodChars, 'GOOD CHOOSES:', ...evilChars, 'EVIL CHOOSES:', )
+    G.history.push(...goodChars, 'GOOD CHOOSES:', ...evilChars, 'EVIL CHOOSES:',)
 }
 
 export const ConfrontationDraft = {
@@ -1509,13 +1528,13 @@ export const ConfrontationDraft = {
                     side: 'evil',
                     cards: [...EVIL_CARDS],
                     // .map(c=>c.title !== 'Magic' ? {...c, discarded : true} : c)
-                    charactersToPlace: [...Object.values(EVIL_CHARS)],
+                    charactersToPlace: [],
                     ambush: true,
                 },
                 1: {
                     side: 'good',
                     cards: [...GOOD_CARDS],
-                    charactersToPlace: [...Object.values(GOOD_CHARS)],
+                    charactersToPlace: [],
                 },
             },
 
@@ -1530,6 +1549,21 @@ export const ConfrontationDraft = {
                 stages: {
                     placement: {
                         moves: {
+                            setMatchId: ({G}: { G: GState }, matchId: string) => {
+                                if (!G.matchID) {
+                                    G.matchID = matchId
+                                    const mode = getMode(matchId)
+
+                                    G.players['0'].charactersToPlace = [...Object.values(getChars({
+                                        mode,
+                                        isGood: false
+                                    }))]
+                                    G.players['1'].charactersToPlace = [...Object.values(getChars({
+                                        mode,
+                                        isGood: true
+                                    }))]
+                                }
+                            },
                             chooseCharacter: ({G, playerID}: {
                                 G: GState,
                                 playerID: string
@@ -1544,12 +1578,15 @@ export const ConfrontationDraft = {
                             },
                             autoPlace: ({G, playerID}: {
                                 G: GState,
-                                playerID: string
+                                playerID: string,
                             }) => {
                                 const isGood = isSpecifiedPlayerGood(playerID)
                                 G.players[playerID].charactersToPlace = []
                                 if (isGood) {
-                                    const players = getRandomChars(G, GOOD_CHARS)
+                                    const players = getRandomChars(G, getChars({
+                                        mode: getMode(G.matchID),
+                                        isGood: true
+                                    }))
                                     G.regions['RHUDAUR'].currentOccupants = [players[6]]
                                     G.regions['EREGION'].currentOccupants = [players[2]]
                                     G.regions['ENEDWAITH'].currentOccupants = [players[7]]
@@ -1563,7 +1600,10 @@ export const ConfrontationDraft = {
                                     ]
                                     G.goodCharacterToPlace = null
                                 } else {
-                                    const players = getRandomChars(G, EVIL_CHARS)
+                                    const players = getRandomChars(G, getChars({
+                                        mode: getMode(G.matchID),
+                                        isGood: false
+                                    }))
                                     G.regions['MORDOR'].currentOccupants = [
                                         players[3],
                                         players[4],
@@ -1591,7 +1631,10 @@ export const ConfrontationDraft = {
                                     G.regions['ARTHEDAIN'].currentOccupants = []
                                     G.regions['CARDOLAN'].currentOccupants = []
                                     G.regions['SHIRE'].currentOccupants = []
-                                    G.players[playerID].charactersToPlace = [...Object.values(GOOD_CHARS)]
+                                    G.players[playerID].charactersToPlace = [...Object.values(getChars({
+                                        mode: getMode(G.matchID),
+                                        isGood: true
+                                    }))]
                                     G.goodCharacterToPlace = null
 
                                     G.players[playerID].charactersToPlace.forEach((char: Character) => delete G.characters[char.id])
@@ -1602,7 +1645,10 @@ export const ConfrontationDraft = {
                                     G.regions['MIRKWOOD'].currentOccupants = []
                                     G.regions['FANGORN'].currentOccupants = []
                                     G.regions['ROHAN'].currentOccupants = []
-                                    G.players[playerID].charactersToPlace = [...Object.values(EVIL_CHARS)]
+                                    G.players[playerID].charactersToPlace = [...Object.values(getChars({
+                                        mode: getMode(G.matchID),
+                                        isGood: false
+                                    }))]
                                     G.evilCharacterToPlace = null
 
                                     G.players[playerID].charactersToPlace.forEach((char: Character) => delete G.characters[char.id])
@@ -1619,12 +1665,16 @@ export const ConfrontationDraft = {
 
                                 const char = getChar(G, charId)
                                 removeCharacter({G, unitIdToRemove: charId, tileId})
+
+                                const reAddPieces = [char]
                                 const draftMatchChar = getDraftChar(isGood, charId)
+                                if(getMode(G.matchID) === 'DRAFT'){
+                                    reAddPieces.push(draftMatchChar)
+                                }
 
                                 G.players[playerID].charactersToPlace = [
                                     ...G.players[playerID].charactersToPlace,
-                                    char,
-                                    draftMatchChar,
+                                    ...reAddPieces,
                                 ]
                                 delete G.characters[charId]
                             },
@@ -1662,8 +1712,15 @@ export const ConfrontationDraft = {
 
                                 addCharacter({G, unitIdToAdd: charToPlace, tileId})
                                 const remainingChars = G.players[playerID].charactersToPlace
+
+                                const secondCheck = (cId)=> {
+                                    if(getMode(G.matchID) !== 'DRAFT'){
+                                        return true
+                                    }
+                                    return cId !== DRAFT_PAIRS[charToPlace]
+                                }
                                 G.players[playerID].charactersToPlace = remainingChars.filter(
-                                    (c: Character) => c.id !== charToPlace && c.id !== DRAFT_PAIRS[charToPlace],
+                                    (c: Character) => c.id !== charToPlace && secondCheck(c.id),
                                 )
 
                                 if (isGood) {
