@@ -396,14 +396,14 @@ export const CLASSIC_GOOD_NAMES = {
 }
 export const CLASSIC_EVIL_CHARS: CharacterMap = {
     'BALROG': {
-        name: 'BALROG',
+        name: 'Balrog',
         id: 'BALROG',
         value: 5,
         classic: true,
         description: "If the Balrog is in the Caradhras region  when a Fellowship character uses the Tunnel  of Moria (moving from Eregion directly to  Fangorn), the Sauron player may reveal the Balrog to  instantly defeat the Fellowship character without a battle  (even Frodo). The Balrog itself remains unharmed. Even  Boromir cannot harm the Balrog in this situation. A  Fellowship character that is defeated by the Balrog when  traveling through the Tunnel of Moria never reaches  Fangorn, so any Sauron character in Fangorn is not  revealed."
     },
     'SHELOB': {
-        name: 'SHELOB',
+        name: 'Shelob',
         id: 'SHELOB',
         value: 5,
         classic: true,
@@ -445,14 +445,14 @@ export const CLASSIC_EVIL_CHARS: CharacterMap = {
         description: "When the Orcs attack, they immediately  defeat the first Fellowship character attacked  in the region. Gimli immediately defeats the  Orcs and is therefore unharmed in any battle against  them. If the Orcs attack Boromir, both characters are  defeated. If there are additional Fellowship characters in  the region, the Orc’s special ability is ignored for those  subsequent battles. The Orcs have no special ability if  attacked by a Fellowship character.  If the Orcs attack Frodo first, Frodo may retreat sideways before the Orcs can defeat him. In this particular  case, this is still considered the first attack by the Orcs,  and they will have no special ability for the remainder of  the turn."
     },
     'WARG': {
-        name: 'WARG',
+        name: 'Warg',
         id: 'WARG',
         value: 2,
         classic: true,
         description: "In battle against the Warg, the Fellowship  character’s text has no effect. Aragorn can  use his ability since he uses his ability in the  adjacent region, before the battle against the Warg."
     },
     'CAVETROLL': {
-        name: 'CAVE TROLL',
+        name: 'The Cave Troll',
         id: 'CAVETROLL',
         value: 9,
         classic: true,
