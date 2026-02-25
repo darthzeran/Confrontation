@@ -1108,7 +1108,7 @@ function CardsDisplay({G, ctx, moves, playerID, iAmGood, isMagicChoice}: {
         ctx.activePlayers?.[playerID] === 'pickMagicCards' && !donePickingMagicCard
 
     const currentFighters = [G.attackingChar, G.defendingChar]
-    const gandalfInPlay = currentFighters.includes(GOOD_NAMES.CLASSICGANDALF) && !currentFighters.includes(EVIL_CHARS.WARG)
+    const gandalfInPlay = currentFighters.includes(GOOD_NAMES.CLASSICGANDALF) && !currentFighters.includes(EVIL_NAMES.WARG)
 
     const shouldReplaceMagic =
         ((iAmGood ? G.goodPlayMagic : G.evilPlayMagic) &&
