@@ -1517,8 +1517,8 @@ function declareChars(G: GState) {
     G.history.push(...goodChars, 'GOOD CHOOSES:', ...evilChars, 'EVIL CHOOSES:',)
 }
 
-export const ConfrontationDraft = {
-    name: 'ConfrontationDraft',
+export const Confrontation = {
+    name: 'Confrontation',
     setup: () => {
         return {
             history: [],
@@ -1540,6 +1540,8 @@ export const ConfrontationDraft = {
 
             regions: LOCATIONS,
             characters: {},
+            goodReady: false,
+            evilReady: false,
         }
     },
     phases: {
@@ -1668,7 +1670,7 @@ export const ConfrontationDraft = {
 
                                 const reAddPieces = [char]
                                 const draftMatchChar = getDraftChar(isGood, charId)
-                                if(getMode(G.matchID) === 'DRAFT'){
+                                if (getMode(G.matchID) === 'DRAFT') {
                                     reAddPieces.push(draftMatchChar)
                                 }
 
@@ -1713,8 +1715,8 @@ export const ConfrontationDraft = {
                                 addCharacter({G, unitIdToAdd: charToPlace, tileId})
                                 const remainingChars = G.players[playerID].charactersToPlace
 
-                                const secondCheck = (cId)=> {
-                                    if(getMode(G.matchID) !== 'DRAFT'){
+                                const secondCheck = (cId) => {
+                                    if (getMode(G.matchID) !== 'DRAFT') {
                                         return true
                                     }
                                     return cId !== DRAFT_PAIRS[charToPlace]
@@ -1737,13 +1739,15 @@ export const ConfrontationDraft = {
                                 playerID: string,
                             }) => {
                                 G.messages = []
-                                if (playerID === '0') {
-                                    G.evilReady = true
-                                } else {
+
+                                if (isSpecifiedPlayerGood(playerID)) {
                                     G.goodReady = true
+                                } else {
+                                    G.evilReady = true
                                 }
+
                                 if (G.evilReady && G.goodReady) {
-                                    if(getMode(G.matchID) === 'DRAFT'){
+                                    if (getMode(G.matchID) === 'DRAFT') {
                                         declareChars(G)
                                     }
                                     events.setActivePlayers({
