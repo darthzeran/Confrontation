@@ -18,23 +18,36 @@ function getIsGood(id: string) {
     return id === '1'
 }
 
-function getChars({mode, good}: { mode:string, good: boolean }): CharacterMap {
-    if(mode === 'CLASSIC'){
+function charTypeTag(char: Character, mode: string, parens: boolean) {
+    if (mode === 'DRAFT') {
+        const ID = char.classic ? 'C' : 'V'
+        if (parens) {
+            return `(${ID})`
+        }
+        return ID
+    }
+    return ''
+}
+
+function getChars({mode, good}: { mode: string, good: boolean }): CharacterMap {
+    if (mode === 'CLASSIC') {
         return good ? CLASSIC_GOOD_CHARS : CLASSIC_EVIL_CHARS
-    }
-    else if(mode === 'VARIANT'){
+    } else if (mode === 'VARIANT') {
         return good ? VARIANT_GOOD_CHARS : VARIANT_EVIL_CHARS
-    }
-    else{
+    } else {
         return good ? GOOD_CHARS : EVIL_CHARS
     }
+}
+
+function getMode(matchId: string) {
+    return matchId?.[0] === 'a' ? 'CLASSIC' : matchId?.[0] === 'b' ? 'VARIANT' : 'DRAFT'
 }
 
 
 export function ConfrontationBoard({ctx, G, moves, playerID, matchID}: {
     G: GState,
     playerID: string,
-    matchID: String,
+    matchID: string,
     ctx: any,
     moves: any
 }) {
@@ -45,7 +58,9 @@ export function ConfrontationBoard({ctx, G, moves, playerID, matchID}: {
         }
     }, [G.messages])
 
-    const mode = matchID?.[0] === 'a' ? 'CLASSIC' : matchID?.[0] === 'b' ? 'VARIANT' : 'DRAFT'
+    useEffect(() => {
+        moves.setMatchId(matchID)
+    }, [matchID])
 
     return (
         <div className="app">
@@ -67,7 +82,6 @@ export function ConfrontationBoard({ctx, G, moves, playerID, matchID}: {
                     G={G}
                     moves={moves}
                     ctx={ctx}
-                    mode={mode}
                 />
 
                 <main className="main-content">
@@ -79,18 +93,17 @@ export function ConfrontationBoard({ctx, G, moves, playerID, matchID}: {
                         moves,
                         G,
                         ctx,
-                        mode
                     })}
-                    <Deaths isGood={getIsGood(playerID)} G={G} mode={mode}/>
+                    <Deaths isGood={getIsGood(playerID)} G={G}/>
                 </main>
 
-                <RightPanel history={G.history.toReversed()} G={G} />
+                <RightPanel history={G.history.toReversed()} G={G}/>
             </div>
         </div>
     )
 }
 
-function RightPanel({history, G}: {history: string[], G:GState}) {
+function RightPanel({history, G}: { history: string[], G: GState }) {
     const [panel, setPanel] = useState(null)
     const [detail, setDetail] = useState(null)
     const [card, setCard] = useState(null)
@@ -171,6 +184,7 @@ function RightPanel({history, G}: {history: string[], G:GState}) {
                         detail={detail}
                         setDetail={setDetail}
                         chars={Object.values(GOOD_CHARS).filter((char: Character) => G.characters[char.id])}
+                        mode={getMode(G.matchID)}
                     />
                 )}
                 {panel === 'GOOD' && (
@@ -193,6 +207,7 @@ function RightPanel({history, G}: {history: string[], G:GState}) {
                         detail={detail}
                         setDetail={setDetail}
                         chars={Object.values(EVIL_CHARS).filter((char: Character) => G.characters[char.id])}
+                        mode={getMode(G.matchID)}
                     />
                 )}
                 {panel === 'EVIL' && (
@@ -227,7 +242,7 @@ function RightPanel({history, G}: {history: string[], G:GState}) {
     )
 }
 
-function ShowChars({detail, setDetail, chars}) {
+function ShowChars({detail, setDetail, chars, mode}) {
     return (
         <>
             {detail ? (
@@ -258,7 +273,7 @@ function ShowChars({detail, setDetail, chars}) {
                                 </div>
                                 <div className={'charDetails'}>
                                   <span>
-                                    {char.name}({char.classic? 'C' : 'V'}) ({char.value})
+                                    {char.name}{charTypeTag(char, mode, true)} ({char.value})
                                   </span>
                                     <button
                                         className={'detailButton'}
@@ -373,13 +388,14 @@ function ShowCards({card, setCard, cards, special = false}) {
     )
 }
 
-function Deaths({G, isGood, mode}: {
+function Deaths({G, isGood}: {
     G: GState,
     isGood: boolean,
-    mode: string,
+
 }) {
-    const myChars = Object.keys(getChars({ mode, good: isGood}))
-    const enemyChars = Object.keys(getChars({ mode, good: !isGood}))
+    const mode = getMode(G.matchID)
+    const myChars = Object.keys(getChars({mode, good: isGood}))
+    const enemyChars = Object.keys(getChars({mode, good: !isGood}))
 
     const deadAllies = myChars.filter((name) => G.characters[name]?.defeated)
     const deadEnemies = enemyChars.filter((name) => G.characters[name]?.defeated)
@@ -434,7 +450,7 @@ function SpecialMoves({tileId}) {
     return null
 }
 
-function getTile({phase, G, moves, myTurn, isGood, tile, ctx, mode}: {
+function getTile({phase, G, moves, myTurn, isGood, tile, ctx}: {
     phase: string,
     G: GState,
     moves: any,
@@ -442,8 +458,8 @@ function getTile({phase, G, moves, myTurn, isGood, tile, ctx, mode}: {
     isGood: boolean,
     tile: Location,
     ctx: any,
-    mode: string,
 }) {
+    const mode = getMode(G.matchID)
     const currentOccupants = G.regions?.[tile.title]?.currentOccupants || []
     const charSlots = new Array(Math.max(tile.maxChars - currentOccupants.length, 0)).fill(null)
     const isGoodRetreatMove = ctx.activePlayers?.[ctx.currentPlayer] === 'goodRetreat'
@@ -457,7 +473,7 @@ function getTile({phase, G, moves, myTurn, isGood, tile, ctx, mode}: {
     const isPalantirRegion = !isGood && (G.palantirRegions || []).includes(tile.title)
 
     const fighters = [G.attackingChar, G.defendingChar]
-    const myTeam = getChars({ mode, good: isGood})
+    const myTeam = getChars({mode, good: isGood})
 
     return (
         <div
@@ -486,8 +502,8 @@ function getTile({phase, G, moves, myTurn, isGood, tile, ctx, mode}: {
                 {currentOccupants.map((name, index) => {
                     const gameOver = Boolean(ctx.gameover)
 
-                    const goodChars = getChars({ mode,good: true})
-                    const badChars = getChars({ mode,good: false})
+                    const goodChars = getChars({mode, good: true})
+                    const badChars = getChars({mode, good: false})
 
                     const occupant = G.characters[name]
                     const occupantGood = Boolean(goodChars[name])
@@ -554,8 +570,8 @@ function getTile({phase, G, moves, myTurn, isGood, tile, ctx, mode}: {
                             {highlight && G.defendingChar && fighters.includes(occupant.id) && (
                                 <div className={'powerDiv ' + highlight}>{occupant.value}</div>
                             )}
-                            {(canSeeChar|| occupant?.permaReveal) && (
-                                <div className={'typeDiv '}>{(occupant.classic ? 'C' : 'V')}</div>
+                            {(canSeeChar || occupant?.permaReveal) && (
+                                <div className={'typeDiv '}>{charTypeTag(occupant, mode, false)}</div>
                             )}
                         </div>
                     )
@@ -574,7 +590,7 @@ function getTile({phase, G, moves, myTurn, isGood, tile, ctx, mode}: {
     )
 }
 
-function getBoard({G, moves, tiles, phase, myTurn, ctx, isGood, mode}: {
+function getBoard({G, moves, tiles, phase, myTurn, ctx, isGood}: {
     G: GState,
     moves: any,
     tiles: Location[],
@@ -582,12 +598,11 @@ function getBoard({G, moves, tiles, phase, myTurn, ctx, isGood, mode}: {
     myTurn: boolean,
     ctx: any,
     isGood: boolean,
-    mode: string,
 }) {
     const indexes = isGood ? GOOD_INDEXES : BAD_INDEXES
     const regions = []
     for (let i = 0; i < 16; i++) {
-        regions.push(getTile({G, ctx, isGood, myTurn, phase, moves, tile: tiles[indexes[i]], mode}))
+        regions.push(getTile({G, ctx, isGood, myTurn, phase, moves, tile: tiles[indexes[i]]}))
     }
     return regions
 }
@@ -603,6 +618,7 @@ function LeftPlacePiecesPanel({moves, G, iAmGood, playerID}: {
     const chars = G.players[playerID].charactersToPlace || []
     const charToPlace = iAmGood ? G.goodCharacterToPlace : G.evilCharacterToPlace
     const isReady = iAmGood ? G.goodReady : G.evilReady
+    const mode = getMode(G.matchID)
 
     return <>
         {detail ? (
@@ -651,7 +667,7 @@ function LeftPlacePiecesPanel({moves, G, iAmGood, playerID}: {
                             </div>
                             <div className={'charDetails'}>
                     <span>
-                      {char.name}({char.classic? 'C' : 'V'}) ({char.value})
+                      {char.name}{charTypeTag(char, mode, true)} ({char.value})
                     </span>
                                 <button
                                     className={'detailButton'}
@@ -943,15 +959,15 @@ function LeftBattlePanel({iAmGood, playerID, G, moves, ctx, myTurn}: {
     </>
 }
 
-function LeftMovePhase({G, iAmGood, myTurn, moves, mode}: {
+function LeftMovePhase({G, iAmGood, myTurn, moves}: {
     G: GState,
     iAmGood: boolean,
     myTurn: boolean,
     moves: any,
-    mode: string,
 }) {
     const mySelectedCards = G.players[iAmGood ? '1' : '0'].specialCards || []
     const cardChosen = iAmGood ? G.goodSpecial : G.evilSpecial
+    const mode = getMode(G.matchID)
 
     return <>
         <h2>
@@ -962,7 +978,7 @@ function LeftMovePhase({G, iAmGood, myTurn, moves, mode}: {
                 : G.mordorDarkMode === true
                     ? 'Performing Extra Move'
                     : (!iAmGood && G.kingRevealed && G.kingRevealed !== true)
-                        ? `You MUST move ${getChars({ mode, good: false})[G.kingRevealed].name}`
+                        ? `You MUST move ${getChars({mode, good: false})[G.kingRevealed].name}`
                         : (
                             <span>{!G?.attackingChar ? 'Select Piece' : 'Select Region'}</span>
                         )}
@@ -984,7 +1000,7 @@ function LeftMovePhase({G, iAmGood, myTurn, moves, mode}: {
                 </div>
             </div>
         )}
-        {!iAmGood && myTurn && G.characters[EVIL_CHARS.BALROG] && !G.characters[EVIL_CHARS.BALROG]?.defeated &&  (
+        {!iAmGood && myTurn && G.characters[EVIL_CHARS.BALROG] && !G.characters[EVIL_CHARS.BALROG]?.defeated && (
             <div>
                 <div>
                     <span>Check the box to ambush (or allow) Fellowship units in Moria.</span>
@@ -1005,14 +1021,13 @@ function LeftMovePhase({G, iAmGood, myTurn, moves, mode}: {
     </>
 }
 
-function LeftPanel({phase, playerID, G, moves, ctx, myTurn, mode}: {
+function LeftPanel({phase, playerID, G, moves, ctx, myTurn}: {
     moves: any,
     G: GState,
     phase: string,
     playerID: string,
     ctx: any,
     myTurn: boolean,
-    mode: string,
 }) {
     const iAmGood = getIsGood(playerID)
     const placeStage = ctx.activePlayers?.[0]
@@ -1038,7 +1053,6 @@ function LeftPanel({phase, playerID, G, moves, ctx, myTurn, mode}: {
                     G={G}
                     moves={moves}
                     myTurn={myTurn}
-                    mode={mode}
                 />
             ) : phase === 'battle' ? (
                 <LeftBattlePanel
