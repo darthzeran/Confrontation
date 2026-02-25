@@ -1,6 +1,10 @@
 import React, {useState} from 'react'
 import './Home.css'
 
+function getTitle(mode){
+    return mode === 'CLASSIC' ? 'CONFRONTATION' : mode === 'VARIANT' ? 'VARIANT' : 'DRAFT'
+}
+
 export default function Home({onCreate, onJoin}) {
     const [showModal, setShowModal] = useState(true)
     const [selectedOption, setSelectedOption] = useState(null)
@@ -21,7 +25,7 @@ export default function Home({onCreate, onJoin}) {
         <div className="game-home">
             <header className="game-banner">
                 <div className="banner-content">
-                    <h1 className="banner-title">{getText('LOTR: The DRAFT')}</h1>
+                    <h1 className="banner-title">{getText('LOTR: The '+ getTitle(mode))}</h1>
                     <div className="banner-subtitle">
                         <span className="good-text">{getText('The Fellowship')}</span>
                         <span className="vs">{getText('VS')}</span>
