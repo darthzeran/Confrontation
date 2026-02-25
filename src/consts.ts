@@ -396,7 +396,7 @@ export const CLASSIC_GOOD_NAMES = {
 }
 export const CLASSIC_EVIL_CHARS: CharacterMap = {
     'BALROG': {
-        name: 'Balrog',
+        name: 'The Balrog',
         id: 'BALROG',
         value: 5,
         classic: true,
@@ -445,7 +445,7 @@ export const CLASSIC_EVIL_CHARS: CharacterMap = {
         description: "When the Orcs attack, they immediately  defeat the first Fellowship character attacked  in the region. Gimli immediately defeats the  Orcs and is therefore unharmed in any battle against  them. If the Orcs attack Boromir, both characters are  defeated. If there are additional Fellowship characters in  the region, the Orc’s special ability is ignored for those  subsequent battles. The Orcs have no special ability if  attacked by a Fellowship character.  If the Orcs attack Frodo first, Frodo may retreat sideways before the Orcs can defeat him. In this particular  case, this is still considered the first attack by the Orcs,  and they will have no special ability for the remainder of  the turn."
     },
     'WARG': {
-        name: 'Warg',
+        name: 'The Warg',
         id: 'WARG',
         value: 2,
         classic: true,
