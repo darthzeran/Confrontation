@@ -1307,6 +1307,32 @@ function processPalantir(G: GState) {
     })
 }
 
+function canEvilCharsMove(G:GState){
+    const evilChars = []
+    Object.values(G.characters).forEach((c:Character) =>{
+        if(EVIL_NAMES[c.id] && !c.defeated){
+            evilChars.push(c.id)
+        }
+    })
+
+    const charsWhoCanMove =  evilChars.filter(evilName =>{
+        const char = getChar(G, evilName)
+        const tile = findCharTile(G, evilName)
+        const moves = generateMoves({G, playerID: '0', selectedChar: char, selectedTile: tile})
+        return moves.length > 0
+    })
+
+    return charsWhoCanMove
+}
+
+function canPlayMordorDark(G:GState){
+    return canEvilCharsMove(G).length > 1
+}
+
+function canPlayKingRevealed(G:GState){
+    return canEvilCharsMove(G).length > 0
+}
+
 function processGoodSpecialCard({G, events, card}: {
     G: GState,
     events: any,
@@ -1345,9 +1371,11 @@ function processGoodSpecialCard({G, events, card}: {
         }
     } else if (card.id === 3) {
         const aragornName = G.characters[GOOD_NAMES.CLASSICARAGORN] ? GOOD_NAMES.CLASSICARAGORN : GOOD_NAMES.VARIANTARAGORN
-        if (!G.characters[aragornName].defeated) {
+        if(canPlayKingRevealed(G) && !G.characters[aragornName].defeated){
             G.characters[aragornName].reveal = true
             G.goodSpecial = 'KING'
+        } else{
+            updateHistory(G, 'The Dark of Mordor cannot be played')
         }
     } else if (card.id === 4) {
         // doesnt get here, determined in pre good actions
@@ -1370,9 +1398,16 @@ function processEvilSpecialCard({G, card}: {
         }
         G.evilSpecial = 'MORDORRECALL'
     } else if (card.id === 7) {
-        G.mordorDarkMode = true
-        G.players['0'].specialCards = G.players['0'].specialCards.filter(card => card.id !== 7)
-        G.evilSpecial = 'DONE'
+        // dark of mordor
+        const validMoves = canPlayMordorDark(G)
+        if(validMoves){
+            G.mordorDarkMode = true
+            G.players['0'].specialCards = G.players['0'].specialCards.filter(card => card.id !== 7)
+            G.evilSpecial = 'DONE'
+        } else{
+            updateHistory(G, 'The Dark of Mordor cannot be played')
+        }
+
     } else if (card.id === 8) {
         G.evilSpecial = 'CREBAIN'
     }
@@ -1750,7 +1785,7 @@ export const Confrontation = {
                                 playerID: string,
                             }) => {
                                 G.messages = []
-                                
+
                                 if (Object.keys(G.characters).length === 0) {
                                     return INVALID_MOVE
                                 }
@@ -1908,6 +1943,18 @@ export const Confrontation = {
                     if (G.characters[GOOD_NAMES.CLASSICARAGORN]?.defeated
                         || G.characters[GOOD_NAMES.VARIANTARAGORN]?.defeated) {
                         G.players['1'].specialCards = G.players['1'].specialCards.filter(card => card.id !== 3)
+                    }
+
+                    // hide dark of mordor if only 1 evil char remaining
+                    let evilUnitCount = 0
+                    Object.values(G.characters).forEach((c:Character) =>{
+                        if(EVIL_NAMES[c.id] && !c.defeated){
+                            evilUnitCount++
+                        }
+                    })
+
+                    if (evilUnitCount < 2) {
+                        G.players['0'].specialCards = G.players['0'].specialCards.filter(card => card.id !== 7)
                     }
                 },
             },
