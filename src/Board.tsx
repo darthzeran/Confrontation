@@ -1011,7 +1011,7 @@ function LeftMovePhase({G, iAmGood, myTurn, moves}: {
                 </div>
             </div>
         )}
-        {!iAmGood && myTurn && G.characters[EVIL_CHARS.BALROG] && !G.characters[EVIL_CHARS.BALROG]?.defeated && (
+        {!iAmGood && myTurn && G.characters[EVIL_NAMES.BALROG] && !G.characters[EVIL_NAMES.BALROG]?.defeated && (
             <div>
                 <div>
                     <span>Check the box to ambush (or allow) Fellowship units in Moria.</span>
@@ -1025,7 +1025,7 @@ function LeftMovePhase({G, iAmGood, myTurn, moves}: {
                 />
                 {Boolean(G.players['0']?.ambush) ? ' Ambush Set' : ' No Ambush Set'}
                 {Boolean(G.players['0']?.ambush) &&
-                    !G.regions['CARADHRAS'].currentOccupants?.includes(EVIL_CHARS.BALROG) &&
+                    !G.regions['CARADHRAS'].currentOccupants?.includes(EVIL_NAMES.BALROG) &&
                     ' (When Balrog in Caradhras)'}
             </div>
         )}
