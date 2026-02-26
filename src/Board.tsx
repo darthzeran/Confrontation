@@ -517,6 +517,7 @@ function getTile({phase, G, moves, myTurn, isGood, tile, ctx}: {
                     const canSeeChar =
                         ((occupantGood && isGood) || (!occupantGood && !isGood) || occupant?.reveal) || gameOver
                     const isCrebain = G.evilSpecial === 'CREBAIN' && !isGood && occupantGood
+                    const kingRevealed = (G.kingRevealed !== true && G.kingRevealed) || ''
 
 
                     const highlight =
@@ -527,7 +528,7 @@ function getTile({phase, G, moves, myTurn, isGood, tile, ctx}: {
                                     : 'red'
                                 : occupant?.permaReveal ? occupantGood ? 'darkgreen' : 'darkred' : ''
                             : occupant?.permaReveal ? occupantGood ? 'darkgreen' : 'darkred' : ''
-                    const yellowHighlight = (occupantGood && isGood && G.swapOptions?.includes?.(name)) || isCrebain
+                    const yellowHighlight = (occupantGood && isGood && G.swapOptions?.includes?.(name)) || isCrebain  || (!isGood && occupant.id === kingRevealed)
 
                     return (
                         <div
