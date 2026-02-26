@@ -711,6 +711,7 @@ function startBattleLogic({G, playerID, events, ctx}: {
 }) {
     // hide all characters because we can
     hideCharacters(G)
+    checkReshuffle(G)
 
     // make sure Grima has a chance to escape
     if (checkCanWormTongueEscape(G)) {
@@ -1517,6 +1518,16 @@ function declareChars(G: GState) {
     G.history.push(...goodChars, 'GOOD CHOOSES:', ...evilChars, 'EVIL CHOOSES:',)
 }
 
+function checkReshuffle(G:GState){
+    if (G.players['0'].cards.every((card) => card.discarded)) {
+        G.players['0'].cards.forEach((_, index) => {
+            G.players['0'].cards[index].discarded = false
+            G.players['1'].cards[index].discarded = false
+        })
+        updateHistory(G, 'Cards Reshuffled')
+    }
+}
+
 export const Confrontation = {
     name: 'Confrontation',
     setup: () => {
@@ -1739,6 +1750,10 @@ export const Confrontation = {
                                 playerID: string,
                             }) => {
                                 G.messages = []
+                                
+                                if (Object.keys(G.characters).length === 0) {
+                                    return INVALID_MOVE
+                                }
 
                                 if (isSpecifiedPlayerGood(playerID)) {
                                     G.goodReady = true
@@ -2122,13 +2137,7 @@ export const Confrontation = {
                     playerID: string
                 }) => {
                     props.G.messages = []
-                    if (props.G.players['0'].cards.every((card) => card.discarded)) {
-                        props.G.players['0'].cards.forEach((_, index) => {
-                            props.G.players['0'].cards[index].discarded = false
-                            props.G.players['1'].cards[index].discarded = false
-                        })
-                        updateHistory(props.G, 'Cards Reshuffled')
-                    }
+                    checkReshuffle(props.G)
 
                     // start phase steps
                     startBattleLogic(props)
