@@ -236,8 +236,8 @@ function RightPanel({history, G}: { history: string[], G: GState }) {
                 )}
                 {panel === 'HISTORY' && (
                     <div className={'history-holder'}>
-                        <div className={'history'}>{history.map((item: string) => {
-                            return <div>- {item}</div>
+                        <div className={'history'}>{history.map((item: string, index) => {
+                            return <div key={'h:'+index}>- {item}</div>
                         })}
                             <div><i>Start of Game History</i></div>
                         </div>
@@ -628,6 +628,9 @@ function LeftPlacePiecesPanel({moves, G, iAmGood, playerID}: {
     const isReady = iAmGood ? G.goodReady : G.evilReady
     const mode = getMode(G.matchID)
 
+    const charNames = Object.keys(G.characters).filter(name =>  Boolean((iAmGood ? GOOD_CHARS: EVIL_CHARS)[name]) )
+    const hasPlacedChars = charNames.length === 9
+
     return <>
         {detail ? (
             <div className={'detailsPanel'}
@@ -695,7 +698,7 @@ function LeftPlacePiecesPanel({moves, G, iAmGood, playerID}: {
                 <button className={'resetChars'} onClick={() => moves.reset()}>
                     Reset Pieces
                 </button>
-                {Object.keys(G.characters).length > 0 && (
+                {hasPlacedChars && (
                     <button className={'resetChars'} onClick={() => moves.ready()}>
                         READY
                     </button>
@@ -1125,9 +1128,9 @@ function CardsDisplay({G, ctx, moves, playerID, iAmGood, isMagicChoice}: {
         ((iAmGood ? G.goodPlayMagic : G.evilPlayMagic) &&
             theirCard &&
             theirCard.title !== 'Magic' &&
-            donePickingMagicCard) ||
-        (!iAmGood && gandalfInPlay && G.evilPlayMagic) ||
-        (iAmGood && gandalfInPlay && G.evilCard && G.goodPlayMagic)
+            !donePickingMagicCard) ||
+        (!iAmGood && gandalfInPlay && (G.evilPlayMagic || G.evilCard?.discarded)) ||
+        (iAmGood && gandalfInPlay && G.evilCard && (G.goodPlayMagic || G.goodCard?.discarded))
 
 
     const evilCardDetails = G.evilCard
@@ -1156,7 +1159,8 @@ function CardsDisplay({G, ctx, moves, playerID, iAmGood, isMagicChoice}: {
                         >
                             See Opponent Discard Pile
                         </button>
-                        {iAmGood && gandalfInPlay && <div>Opponent has played {evilCardDetails}</div>}
+
+                        {iAmGood && gandalfInPlay && (!G.evilCard ? <div>Awaiting Opponent</div> : <div>Opponent has played {evilCardDetails}</div>)}
                         {!iAmGood && gandalfInPlay && !G.evilCard && <div>Gandalf awaits your pick</div>}
 
                         {shouldReplaceMagic && (
@@ -1169,12 +1173,14 @@ function CardsDisplay({G, ctx, moves, playerID, iAmGood, isMagicChoice}: {
                             </div>
                         )}
                         {isMagicChoice && <div>Opponent played {theirCard.title || `+${theirCard.value}`}</div>}
-                        {((iAmGood && !G.goodCardLocked && !gandalfInPlay) || (!iAmGood && !G.evilCardLocked)) && (
+                        {((iAmGood && !G.goodCardLocked) || (!iAmGood && !G.evilCardLocked)) && (
                             <button className={'lockIn'} onClick={() => moves.lockInCard()}>
                                 Lock in card choice
                             </button>
                         )}
-                        {((!iAmGood && G.evilPlayMagic) || (iAmGood && G.goodPlayMagic)) && gandalfInPlay && (
+                        {((!iAmGood && (G.evilPlayMagic || (G.evilCard?.discarded && !G.evilCardLocked)))
+                            || (iAmGood && (G.goodPlayMagic || (G.goodCard?.discarded && !G.goodCardLocked))))
+                            && gandalfInPlay && (
                             <button className={'lockIn'} onClick={() => moves.cancelMagic()}>
                                 Cancel Magic Usage
                             </button>
