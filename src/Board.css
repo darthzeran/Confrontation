@@ -448,6 +448,8 @@ body {
         .tileHeader {
             text-align: center;
             font-size: 1.5rem;
+            white-space: nowrap;
+            overflow: hidden;
         }
 
         .charSlots {
