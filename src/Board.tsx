@@ -111,11 +111,12 @@ export function ConfrontationBoard({ctx, G, moves, playerID, matchID}: {
 }
 
 function RightPanel({history, G}: { history: string[], G: GState }) {
+    const [isClosed, setIsClosed] = useState(false)
     const [panel, setPanel] = useState(null)
     const [detail, setDetail] = useState(null)
     const [card, setCard] = useState(null)
 
-    return (
+    return isClosed? (<div className={'open-help'} onClick={()=>setIsClosed(false)}>{'<'}</div>) :(
         <aside className={`right-panel`}>
             <h2 onClick={() => {
                 if (detail || card) {
@@ -127,7 +128,14 @@ function RightPanel({history, G}: { history: string[], G: GState }) {
             }}
                 className={'right-panel-title'}
             >
-                {!panel && 'Help Desk'}
+                {!panel && (<>
+                    Help Desk
+                    <div
+                        className={'close-help'}
+                        onClick={() => setIsClosed(true)}>
+                        X
+                    </div>
+                </>)}
                 {panel && (<BackArrow/>)}
                 {panel === 'RULES' && 'Rules'}
                 {panel === 'FELLOWSHIP' &&
