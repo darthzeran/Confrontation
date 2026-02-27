@@ -1128,7 +1128,7 @@ function CardsDisplay({G, ctx, moves, playerID, iAmGood, isMagicChoice}: {
         ((iAmGood ? G.goodPlayMagic : G.evilPlayMagic) &&
             theirCard &&
             theirCard.title !== 'Magic' &&
-            !donePickingMagicCard) ||
+            ((gandalfInPlay && !donePickingMagicCard) || (!gandalfInPlay && donePickingMagicCard))) ||
         (!iAmGood && gandalfInPlay && (G.evilPlayMagic || G.evilCard?.discarded)) ||
         (iAmGood && gandalfInPlay && G.evilCard && (G.goodPlayMagic || G.goodCard?.discarded))
 
