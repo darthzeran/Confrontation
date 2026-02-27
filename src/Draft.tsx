@@ -2515,37 +2515,15 @@ export const Confrontation = {
                                     } else if (isGood && G.evilCardLocked) {
                                         if (card.title === 'Magic' && goodHasDiscards) {
                                             G.goodPlayMagic = true
+                                            G.goodCard = null
                                         } else if (card.title === 'Magic' && !goodHasDiscards) {
                                             G.goodPlayMagic = false
                                             G.goodCard = card
-
-                                            const evilInert = G.evilCard.title === 'Magic' && !G.evilPlayMagic
-                                            updateHistory(G,
-                                                `Good's inert ${G.goodCard.title || `+${G.goodCard.value}`} versus Evil's ${
-                                                    evilInert ? 'inert ' : ''
-                                                }${G.evilCard.title || `+${G.evilCard.value}`}`,
-                                            )
-
-                                            // PROCEED TO EVAL
-                                            processPlayedCards({G, events, ctx, playerID})
                                         } else {
                                             if (G.goodPlayMagic) {
                                                 G.goodPlayMagic = false
-                                                // discard magic card
-                                                discardCard({G, isGood: true, knownIndex: 5})
-                                                updateHistory(G, 'Good uses magic!')
                                             }
                                             G.goodCard = card
-
-                                            const evilInert = G.evilCard.title === 'Magic' && !G.evilPlayMagic
-                                            updateHistory(G,
-                                                `Good's ${G.goodCard.title || `+${G.goodCard.value}`} versus Evil's ${
-                                                    evilInert ? 'inert ' : ''
-                                                }${G.evilCard.title || `+${G.evilCard.value}`}`,
-                                            )
-
-                                            // PROCEED TO EVAL
-                                            processPlayedCards({G, events, ctx, playerID})
                                         }
                                     } else if (!isGood) {
                                         if (card.title === 'Magic' && evilHasDiscards) {
@@ -2555,13 +2533,11 @@ export const Confrontation = {
                                             G.evilPlayMagic = false
                                             G.evilCard = card
                                         } else {
-                                            if (G.evilCard?.discarded) {
+                                            if (card?.discarded && G.evilCard && !G.evilCard.discarded) {
                                                 return INVALID_MOVE
                                             }
                                             if (G.evilPlayMagic) {
                                                 G.evilPlayMagic = false
-                                                // discard magic card
-                                                discardCard({G, isGood: false, knownIndex: 6})
                                             }
                                             G.evilCard = card
                                         }
@@ -2585,6 +2561,10 @@ export const Confrontation = {
                             }) => {
                                 G.messages = []
                                 const isGood = isSpecifiedPlayerGood(playerID)
+                                const players = [G.defendingChar, G.attackingChar]
+                                const gandalfInPlay =
+                                    players.includes(GOOD_NAMES.CLASSICGANDALF) && !players.includes(EVIL_NAMES.WARG)
+
                                 if (isGood && G.goodCard) {
                                     G.goodCardLocked = true
                                 } else if (!isGood && G.evilCard) {
@@ -2592,7 +2572,7 @@ export const Confrontation = {
                                 }
 
                                 if (G.goodCardLocked && G.evilCardLocked) {
-                                    if (G.goodPlayMagic || G.evilPlayMagic) {
+                                    if (!gandalfInPlay && (G.goodPlayMagic || G.evilPlayMagic)) {
                                         // unlock magic cards for next round of choosing
                                         G.goodCardLocked = !G.goodPlayMagic
                                         G.evilCardLocked = !G.evilPlayMagic
@@ -2602,6 +2582,22 @@ export const Confrontation = {
                                             all: 'pickMagicCards',
                                         })
                                     } else {
+                                        if(gandalfInPlay){
+                                            // check to discard magic
+                                            if (G.goodCard.discarded) {
+                                                discardCard({G, isGood: true, knownIndex: 5})
+                                                updateHistory(G,
+                                                    `Good uses magic to play ${G.goodCard.title || `+${G.goodCard.value}`}`,
+                                                )
+                                            }
+                                            if (G.evilCard.discarded) {
+                                                discardCard({G, isGood: false, knownIndex: 6})
+                                                updateHistory(G,
+                                                    `Evil uses magic to play ${G.evilCard.title || `+${G.evilCard.value}`}`,
+                                                )
+                                            }
+                                        }
+
                                         processPostCardActions({G, events, ctx, playerID})
                                     }
                                 }
@@ -2616,10 +2612,12 @@ export const Confrontation = {
                                 const gandalfInPlay =
                                     currentFighters.includes(GOOD_NAMES.CLASSICGANDALF) && !currentFighters.includes(EVIL_NAMES.WARG)
 
-                                if (!isSpecifiedPlayerGood(playerID) && G.evilPlayMagic && !G.evilCard) {
+                                if (!isSpecifiedPlayerGood(playerID)) {
                                     G.evilPlayMagic = false
+                                    G.evilCard = null
                                 } else if (isSpecifiedPlayerGood(playerID) && gandalfInPlay) {
                                     G.goodPlayMagic = false
+                                    G.goodCard = null
                                 }
                             },
                         },
