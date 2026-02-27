@@ -52,7 +52,7 @@ body {
     .open-help{
         position: absolute;
         background: darkgrey;
-        padding: 0 8px 8px 16px;
+        padding: 0 8px 4px 10px;
         top: 1%;
         right: 1%;
         border-radius: 4px;
@@ -450,6 +450,7 @@ body {
             font-size: 1.5rem;
             white-space: nowrap;
             overflow: hidden;
+            width: 100%;
         }
 
         .charSlots {
