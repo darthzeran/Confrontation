@@ -43,10 +43,22 @@ body {
 /* Main Container */
 .main-container {
     display: flex;
+    position: relative;
     flex: 1;
     min-height: 0;
     padding: 1rem;
     gap: 1rem;
+
+    .open-help{
+        position: absolute;
+        background: darkgrey;
+        padding: 0 8px 8px 16px;
+        top: 1%;
+        right: 1%;
+        border-radius: 4px;
+        font-size: 2rem;
+        cursor: pointer;
+    }
 }
 
 /* Side Panels */
@@ -63,7 +75,17 @@ body {
 
     .right-panel-title{
         display: flex;
+        justify-content: center;
         cursor: pointer;
+        position: relative;
+
+        .close-help{
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            padding: 10px 16px;
+            cursor: pointer;
+        }
     }
 
     .detailsPanel {
@@ -114,7 +136,7 @@ body {
         display: flex;
         height: 94%;
         flex-direction: column;
-        overflow-y: auto;   
+        overflow-y: auto;
         overflow-x: hidden;
         gap: 2px;
 
