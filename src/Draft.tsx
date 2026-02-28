@@ -734,7 +734,7 @@ function startBattleLogic({G, playerID, events, ctx}: {
         } else {
             const battleTile = getTile(G, G.attackedTile)
             if (battleTile.currentOccupants.length === 1 ||
-                (G.attackedTile !== findCharTile(G, G.attackingChar).title)
+                (G.attackedTile !== findCharTile(G, G.attackingChar)?.title)
             ) {
                 updateHistory(G, 'This battle is over')
                 // we battled everyone
