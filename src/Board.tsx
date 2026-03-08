@@ -1010,11 +1010,15 @@ function LeftMovePhase({G, iAmGood, myTurn, moves}: {
                 <div> or select a Special Card</div>
                 <div className={'chooseSpecial'}>{mySelectedCards.map(card => {
                     const activeGandalfName = G.characters[GOOD_NAMES.CLASSICGANDALF] ? GOOD_NAMES.CLASSICGANDALF : GOOD_NAMES.VARIANTGANDALF
+
+                    const mordor = G.regions['MORDOR']
+                    const mordorPpl = mordor.currentOccupants
+                    const recallDisabled = !iAmGood && (mordorPpl.length === mordor.maxChars || Boolean(GOOD_CHARS[mordorPpl?.[0]]))
                     return <button
                         key={card.title}
                         className={'specialSelectBtn'}
                         onClick={() => moves.chooseSpecialCard(card)}
-                        disabled={card.id === 4 || (card.id === 2 && !G.characters[activeGandalfName]?.defeated)}
+                        disabled={card.id === 4 || (card.id === 2 && !G.characters[activeGandalfName]?.defeated) || (card.id ===6 && recallDisabled)}
                     >
                         <div>{card.title}-</div>
                         <div>{card.description}</div>
