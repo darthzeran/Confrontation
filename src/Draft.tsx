@@ -16,6 +16,7 @@ import {
 } from './consts.ts'
 import {Character, CharacterMap, Location, GState, SpecialCard, BattleCard} from './types';
 import {INVALID_MOVE} from 'boardgame.io/core'
+
 // const INVALID_MOVE = undefined
 
 function getChars({mode, isGood}: { mode: string, isGood: boolean }): CharacterMap {
@@ -1307,15 +1308,15 @@ function processPalantir(G: GState) {
     })
 }
 
-function canEvilCharsMove(G:GState){
+function canEvilCharsMove(G: GState) {
     const evilChars = []
-    Object.values(G.characters).forEach((c:Character) =>{
-        if(EVIL_NAMES[c.id] && !c.defeated){
+    Object.values(G.characters).forEach((c: Character) => {
+        if (EVIL_NAMES[c.id] && !c.defeated) {
             evilChars.push(c.id)
         }
     })
 
-    const charsWhoCanMove =  evilChars.filter(evilName =>{
+    const charsWhoCanMove = evilChars.filter(evilName => {
         const char = getChar(G, evilName)
         const tile = findCharTile(G, evilName)
         const moves = generateMoves({G, playerID: '0', selectedChar: char, selectedTile: tile})
@@ -1325,11 +1326,11 @@ function canEvilCharsMove(G:GState){
     return charsWhoCanMove
 }
 
-function canPlayMordorDark(G:GState){
+function canPlayMordorDark(G: GState) {
     return canEvilCharsMove(G).length > 1
 }
 
-function canPlayKingRevealed(G:GState){
+function canPlayKingRevealed(G: GState) {
     return canEvilCharsMove(G).length > 0
 }
 
@@ -1371,10 +1372,10 @@ function processGoodSpecialCard({G, events, card}: {
         }
     } else if (card.id === 3) {
         const aragornName = G.characters[GOOD_NAMES.CLASSICARAGORN] ? GOOD_NAMES.CLASSICARAGORN : GOOD_NAMES.VARIANTARAGORN
-        if(canPlayKingRevealed(G) && !G.characters[aragornName].defeated){
+        if (canPlayKingRevealed(G) && !G.characters[aragornName].defeated) {
             G.characters[aragornName].reveal = true
             G.goodSpecial = 'KING'
-        } else{
+        } else {
             updateHistory(G, 'The Dark of Mordor cannot be played')
         }
     } else if (card.id === 4) {
@@ -1400,15 +1401,21 @@ function processEvilSpecialCard({G, card}: {
     } else if (card.id === 7) {
         // dark of mordor
         const validMoves = canPlayMordorDark(G)
-        if(validMoves){
+        if (validMoves) {
             G.mordorDarkMode = true
             G.players['0'].specialCards = G.players['0'].specialCards.filter(card => card.id !== 7)
             G.evilSpecial = 'DONE'
-        } else{
+        } else {
             updateHistory(G, 'The Dark of Mordor cannot be played')
         }
 
     } else if (card.id === 8) {
+        const goodCharAlive = Object.values(G.characters).some((c: Character) => {
+            return GOOD_CHARS[c.id] && !c.defeated
+        })
+        if (!goodCharAlive) {
+            return INVALID_MOVE
+        }
         G.evilSpecial = 'CREBAIN'
     }
 }
@@ -1553,7 +1560,7 @@ function declareChars(G: GState) {
     G.history.push(...goodChars, 'GOOD CHOOSES:', ...evilChars, 'EVIL CHOOSES:',)
 }
 
-function checkReshuffle(G:GState){
+function checkReshuffle(G: GState) {
     if (G.players['0'].cards.every((card) => card.discarded)) {
         G.players['0'].cards.forEach((_, index) => {
             G.players['0'].cards[index].discarded = false
@@ -1912,10 +1919,25 @@ export const Confrontation = {
                             selectedTile: {...selectedTile},
                         })
 
-                        const goodCardTurnSalvage = G.players['1'].specialCards?.find?.(card => card.id === 2 || card.id === 3)
-                        const evilCardTurnSalvage = G.players['0'].specialCards?.find?.(card => card.id === 6 || card.id === 8)
+                        const fangorn = G.regions['FANGORN']
+                        const gandalfName = G.characters[GOOD_NAMES.CLASSICGANDALF] ? GOOD_NAMES.CLASSICGANDALF : GOOD_NAMES.VARIANTGANDALF
+                        const canPlayGandalfWhite = G.characters[gandalfName].defeated
+                            && fangorn.currentOccupants.length < fangorn.maxChars
+                            && !EVIL_CHARS[fangorn.currentOccupants?.[0]]
 
-                        return moves.length > 0 || Boolean(isGood ? goodCardTurnSalvage : evilCardTurnSalvage)
+                        const canPlayKingReveal = canPlayKingRevealed(G)
+
+                        const mordor = G.regions['MORDOR']
+                        const mordorPpl = mordor.currentOccupants
+                        const canPlayRecallMordor = mordorPpl.length !== mordor.maxChars && Boolean(!GOOD_CHARS[mordorPpl?.[0]])
+
+                        const canPlayCrebain = Object.values(G.characters).some((c: Character) => {
+                            return GOOD_CHARS[c.id] && !c.defeated
+                        })
+
+                        return moves.length > 0 || Boolean(isGood ?
+                            (canPlayGandalfWhite || canPlayKingReveal)
+                            : canPlayRecallMordor || canPlayCrebain)
                     })
 
                     if (!canMove) {
@@ -1947,8 +1969,8 @@ export const Confrontation = {
 
                     // hide dark of mordor if only 1 evil char remaining
                     let evilUnitCount = 0
-                    Object.values(G.characters).forEach((c:Character) =>{
-                        if(EVIL_NAMES[c.id] && !c.defeated){
+                    Object.values(G.characters).forEach((c: Character) => {
+                        if (EVIL_NAMES[c.id] && !c.defeated) {
                             evilUnitCount++
                         }
                     })
@@ -2582,7 +2604,7 @@ export const Confrontation = {
                                             all: 'pickMagicCards',
                                         })
                                     } else {
-                                        if(gandalfInPlay){
+                                        if (gandalfInPlay) {
                                             // check to discard magic
                                             if (G.goodCard.discarded) {
                                                 discardCard({G, isGood: true, knownIndex: 5})
