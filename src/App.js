@@ -51,7 +51,12 @@ const App = () => {
                         onCreate={async (isEvil, mode) => {
                             const newMatchId = (mode === 'CLASSIC' ? 'a' : mode === 'VARIANT' ? 'b' : 'c') + generateMatchId()
                             if (!isIOS && navigator.clipboard && navigator.clipboard.writeText) {
-                              await navigator.clipboard.writeText(`${newMatchId}${isEvil ? '0' : '1'}`);
+                                try{
+                                  await navigator.clipboard.writeText(`${newMatchId}${isEvil ? '0' : '1'}`);
+                                }
+                                catch(e){
+                                    console.log(e)
+                                }
                             }
                             setMatchId(newMatchId)
                             setPlayerId(isEvil ? '1' : '0')
