@@ -8,6 +8,8 @@ import {SocketIO} from 'boardgame.io/multiplayer'
 import {Confrontation} from "./Draft.tsx";
 import {ConfrontationBoard} from './Board.tsx'
 
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
 const isProd = true
 
 const ConfrontationDraftClient = Client({
@@ -48,7 +50,9 @@ const App = () => {
                     <Home
                         onCreate={async (isEvil, mode) => {
                             const newMatchId = (mode === 'CLASSIC' ? 'a' : mode === 'VARIANT' ? 'b' : 'c') + generateMatchId()
-                            await navigator.clipboard.writeText(`${newMatchId}${isEvil ? '0' : '1'}`);
+                            if (!isIOS && navigator.clipboard && navigator.clipboard.writeText) {
+                              await navigator.clipboard.writeText(`${newMatchId}${isEvil ? '0' : '1'}`);
+                            }
                             setMatchId(newMatchId)
                             setPlayerId(isEvil ? '1' : '0')
                         }}
