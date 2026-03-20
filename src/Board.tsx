@@ -116,7 +116,7 @@ function RightPanel({history, G}: { history: string[], G: GState }) {
     const [detail, setDetail] = useState(null)
     const [card, setCard] = useState(null)
 
-    return isClosed? (<div className={'open-help'} onClick={()=>setIsClosed(false)}>{'<'}</div>) :(
+    return isClosed ? (<div className={'open-help'} onClick={() => setIsClosed(false)}>{'<'}</div>) : (
         <aside className={`right-panel`}>
             <h2 onClick={() => {
                 if (detail || card) {
@@ -245,7 +245,7 @@ function RightPanel({history, G}: { history: string[], G: GState }) {
                 {panel === 'HISTORY' && (
                     <div className={'history-holder'}>
                         <div className={'history'}>{history.map((item: string, index) => {
-                            return <div key={'h:'+index}>- {item}</div>
+                            return <div key={'h:' + index}>- {item}</div>
                         })}
                             <div><i>Start of Game History</i></div>
                         </div>
@@ -536,7 +536,7 @@ function getTile({phase, G, moves, myTurn, isGood, tile, ctx}: {
                                     : 'red'
                                 : occupant?.permaReveal ? occupantGood ? 'darkgreen' : 'darkred' : ''
                             : occupant?.permaReveal ? occupantGood ? 'darkgreen' : 'darkred' : ''
-                    const yellowHighlight = (occupantGood && isGood && G.swapOptions?.includes?.(name)) || isCrebain  || (!isGood && occupant.id === kingRevealed)
+                    const yellowHighlight = (occupantGood && isGood && G.swapOptions?.includes?.(name)) || isCrebain || (!isGood && occupant.id === kingRevealed) || (isGood && occupant.id === G.goodLightMode)
 
                     return (
                         <div
@@ -636,7 +636,7 @@ function LeftPlacePiecesPanel({moves, G, iAmGood, playerID}: {
     const isReady = iAmGood ? G.goodReady : G.evilReady
     const mode = getMode(G.matchID)
 
-    const charNames = Object.keys(G.characters).filter(name =>  Boolean((iAmGood ? GOOD_CHARS: EVIL_CHARS)[name]) )
+    const charNames = Object.keys(G.characters).filter(name => Boolean((iAmGood ? GOOD_CHARS : EVIL_CHARS)[name]))
     const hasPlacedChars = charNames.length === 9
 
     return <>
@@ -1018,7 +1018,7 @@ function LeftMovePhase({G, iAmGood, myTurn, moves}: {
                         key={card.title}
                         className={'specialSelectBtn'}
                         onClick={() => moves.chooseSpecialCard(card)}
-                        disabled={card.id === 4 || (card.id === 2 && !G.characters[activeGandalfName]?.defeated) || (card.id ===6 && recallDisabled)}
+                        disabled={card.id === 4 || (card.id === 2 && !G.characters[activeGandalfName]?.defeated) || (card.id === 6 && recallDisabled)}
                     >
                         <div>{card.title}-</div>
                         <div>{card.description}</div>
@@ -1172,7 +1172,8 @@ function CardsDisplay({G, ctx, moves, playerID, iAmGood, isMagicChoice}: {
                             See Opponent Discard Pile
                         </button>
 
-                        {iAmGood && gandalfInPlay && (!G.evilCard ? <div>Awaiting Opponent</div> : <div>Opponent has played {evilCardDetails}</div>)}
+                        {iAmGood && gandalfInPlay && (!G.evilCard ? <div>Awaiting Opponent</div> :
+                            <div>Opponent has played {evilCardDetails}</div>)}
                         {!iAmGood && gandalfInPlay && !G.evilCard && <div>Gandalf awaits your pick</div>}
 
                         {shouldReplaceMagic && (
@@ -1191,12 +1192,12 @@ function CardsDisplay({G, ctx, moves, playerID, iAmGood, isMagicChoice}: {
                             </button>
                         )}
                         {((!iAmGood && (G.evilPlayMagic || (G.evilCard?.discarded && !G.evilCardLocked)))
-                            || (iAmGood && (G.goodPlayMagic || (G.goodCard?.discarded && !G.goodCardLocked))))
+                                || (iAmGood && (G.goodPlayMagic || (G.goodCard?.discarded && !G.goodCardLocked))))
                             && gandalfInPlay && (
-                            <button className={'lockIn'} onClick={() => moves.cancelMagic()}>
-                                Cancel Magic Usage
-                            </button>
-                        )}
+                                <button className={'lockIn'} onClick={() => moves.cancelMagic()}>
+                                    Cancel Magic Usage
+                                </button>
+                            )}
                     </div>
                     {!cardsLocked &&
                         myCards.map((card) => {
