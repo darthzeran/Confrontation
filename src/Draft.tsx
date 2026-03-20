@@ -1420,11 +1420,10 @@ function processEvilSpecialCard({G, card}: {
     }
 }
 
-function didBalrogAmbush({G, tileId, events, playerID, endTurn = true}: {
+function didBalrogAmbush({G, tileId, events, playerID}: {
     G: GState, events: any,
     tileId: string,
     playerID: string,
-    endTurn?: boolean
 }) {
     const isGood = isSpecifiedPlayerGood(playerID)
     const selectedChar = getChar(G, G.attackingChar)
@@ -1435,6 +1434,9 @@ function didBalrogAmbush({G, tileId, events, playerID, endTurn = true}: {
     if (isGood && goodPlayerInMoria && balrogInMoria && ambushSet) {
         // kill character
         G.characters[selectedChar.id].defeated = true
+        // in case shadowfax was on
+        G.goodLightMode = null;
+        G.goodSpecial = null;
 
         // check for evil win
         const winner = isTakeRingGameOver(G)
@@ -1448,9 +1450,7 @@ function didBalrogAmbush({G, tileId, events, playerID, endTurn = true}: {
             G.attackingChar = null
             G.attackedTile = null
             G.startingTile = null
-            if (endTurn) {
-                events.endTurn()
-            }
+            events.endTurn()
         }
         return true
     }
@@ -1477,7 +1477,7 @@ function moveCharLogic({G, tileId, events, playerID, endTurn = true}: {
     removeCharacter({G, unitIdToRemove: G.attackingChar, tileId: G.startingTile})
 
     // do balrog ambush check
-    const didAmbush = didBalrogAmbush({G, tileId, events, playerID, endTurn})
+    const didAmbush = didBalrogAmbush({G, tileId, events, playerID})
 
     if (!didAmbush) {
         addCharacter({G, unitIdToAdd: G.attackingChar, tileId: tileId})
