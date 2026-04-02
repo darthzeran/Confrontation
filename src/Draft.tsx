@@ -1102,7 +1102,7 @@ function processPlayedCards({G, events, ctx, playerID}: {
     const trollInPlay = players.includes(EVIL_NAMES.CAVETROLL)
     const evilTextNegated = (elrondActive && G.evilCard.title !== 'Retreat (Sideways)' && G.evilCard.type === 'text') || frodoActive
 
-    if (G.evilCard.type === 'text' && (!evilTextNegated || !trollInPlay)) {
+    if (G.evilCard.type === 'text' && !evilTextNegated && !trollInPlay) {
         if (G.evilCard.title === 'Retreat (Sideways)') {
             const evilRetreated = processEvilCardRetreat({G, events, ctx, playerID})
             if (!evilRetreated) {
