@@ -1446,7 +1446,7 @@ function didBalrogAmbush({G, tileId, events, playerID}: {
             updateHistory(G, 'Evil wins - the Ringbearer was ambushed in Moria')
             events.endGame({winner})
         } else {
-            updateHistory(G, `The Balrog ambushed ${selectedChar.name} in the Mines of Moria`)
+            updateHistory(G, `The Balrog ambushed ${selectedChar.name} in the Mines of Moria declaring, "YOU shall not pass."`)
 
             // EOT
             G.attackingChar = null
