@@ -258,9 +258,10 @@ function shuffle(array: string[]): string[] {
 function isTakeRingGameOver(G: GState): '0' | null {
     const players = [G.attackingChar, G.defendingChar]
     const wargActive = players.includes(EVIL_NAMES.WARG)
+    const vFrodoActive = players.includes(GOOD_NAMES.VARIANTFRODO)
     if (G.characters[GOOD_NAMES.CLASSICFRODO]?.defeated) {
         return '0'
-    } else if (G.characters[GOOD_NAMES.VARIANTFRODO]?.defeated && (wargActive || (
+    } else if (G.characters[GOOD_NAMES.VARIANTFRODO]?.defeated && ((wargActive && vFrodoActive) || (
         G.characters[GOOD_NAMES.CLASSICSAM]?.defeated
         || G.characters[GOOD_NAMES.VARIANTSAM]?.defeated
     ))) {
