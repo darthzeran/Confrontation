@@ -1264,6 +1264,7 @@ body {
         background-color: rgba(128, 128, 128, 0.15);
         border-radius: 4px;
         pointer-events: none;
+        width: fit-content;
     }
 
     .myDeathDiv {
