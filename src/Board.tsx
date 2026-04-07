@@ -101,7 +101,7 @@ export function ConfrontationBoard({ctx, G, moves, playerID, matchID}: {
                         G,
                         ctx,
                     })}
-                    <Deaths isGood={getIsGood(playerID)} G={G}/>
+                    <Deaths isGood={getIsGood(playerID)} G={G} ctx={ctx}/>
                 </main>
 
                 <RightPanel history={G.history.toReversed()} G={G}/>
@@ -403,10 +403,10 @@ function ShowCards({card, setCard, cards, special = false}) {
     )
 }
 
-function Deaths({G, isGood}: {
+function Deaths({G, isGood, ctx}: {
     G: GState,
     isGood: boolean,
-
+    ctx: any,
 }) {
     const mode = getMode(G.matchID)
     const myChars = Object.keys(getChars({mode, good: isGood}))
@@ -414,9 +414,11 @@ function Deaths({G, isGood}: {
 
     const deadAllies = myChars.filter((name) => G.characters[name]?.defeated)
     const deadEnemies = enemyChars.filter((name) => G.characters[name]?.defeated)
+    const aliveEnemies = enemyChars.filter((name) => !G.characters[name]?.defeated && G.characters[name])
     return (
         <>
             <div className={'deathDiv'}>
+                <div className={'deadPpl'}>
                 {deadEnemies.map((name) => {
                     return (
                         <img
@@ -428,6 +430,20 @@ function Deaths({G, isGood}: {
                         />
                     )
                 })}
+                </div>
+                {aliveEnemies.length < 8 && !ctx?.gameover?.winner && <div className={'aliveDiv'}>
+                    {aliveEnemies.map((name) => {
+                        return (
+                            <img
+                                key={'alive' + name}
+                                className={`aliveImg`}
+                                src={PIECE_IMAGES[name]}
+                                alt={'alive-' + name}
+                                title={name}
+                            />
+                        )
+                    })}
+                </div>}
             </div>
             <div className={'myDeathDiv'}>
                 {deadAllies.map((name) => {
