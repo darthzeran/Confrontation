@@ -1209,11 +1209,15 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.1);
 
     .deathDiv {
-        display: flex;
-        gap: 4px;
         position: absolute;
         top: 0;
         left: 0;
+
+        .deadPpl{
+            position: relative;
+            display: flex;
+            gap: 4px;
+        }
 
         .deathImg {
             position: relative;
@@ -1223,7 +1227,7 @@ body {
         }
     }
 
-    .deathDiv::after {
+    .deadPpl::after {
         content: '';
         position: absolute;
         top: 0;
@@ -1231,6 +1235,33 @@ body {
         right: 0;
         bottom: 0;
         background-color: rgba(128, 128, 128, 0.5);
+        border-radius: 4px;
+        pointer-events: none;
+    }
+
+    .aliveDiv {
+        position: relative;
+        top: 2px;
+        left: 0;
+        display: flex;
+        gap: 4px;
+
+        .aliveImg {
+            position: relative;
+            height: clamp(24px, 3vw, 48px);
+            width: clamp(24px, 3vw, 48px);
+            border-radius: 50px;
+        }
+    }
+
+    .aliveDiv::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(128, 128, 128, 0.15);
         border-radius: 4px;
         pointer-events: none;
     }
