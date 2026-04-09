@@ -9,8 +9,8 @@ import {
     GOOD_NAMES,
     GOOD_SPECIAL_CARDS
 } from './consts.ts';
-// import {INVALID_MOVE} from 'boardgame.io/core'
-const INVALID_MOVE = undefined
+import {INVALID_MOVE} from 'boardgame.io/core'
+// const INVALID_MOVE = undefined
 
 export const PLACE = {
     // placement
