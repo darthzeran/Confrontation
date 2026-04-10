@@ -62,6 +62,7 @@ export function AiController({ctx, G, moves}: {
 
 
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isGood, phase, isAIPickCard, isAIPickMagicCard, isGoodAction, isBadAction,
         isMouthAction, isGandalfChoiceAction, isGoodRetreat, isBadRetreat, isSarumanReselectAction, isSarumanChoiceAction,
         isGrimaRetreat, isSmeagolSwap, foes]);
