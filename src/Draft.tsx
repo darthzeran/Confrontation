@@ -356,7 +356,7 @@ export const Confrontation = {
                                 ctx: any,
                                 playerID: string
                             }, useGandalfAbility: boolean) => {
-                                return BATTLE.useMouthChoice(G, events, ctx, playerID, useGandalfAbility)
+                                return BATTLE.useGandalfOption(G, events, ctx, playerID, useGandalfAbility)
                             },
                         },
                     },
