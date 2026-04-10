@@ -723,7 +723,9 @@ export const BATTLE = {
 
             G.goodActions = null
             G.aragornSkip = true
-            if (Logic.isGandalfNearby(G)) {
+            const orcRush = G.attackingChar === EVIL_NAMES.CLASSICORCS && !G.characters[EVIL_NAMES.CLASSICORCS].tired
+
+            if (Logic.isGandalfNearby(G) && !orcRush) {
                 events.setActivePlayers({
                     all: 'gandalfChoice',
                 })
