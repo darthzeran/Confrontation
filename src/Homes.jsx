@@ -7,6 +7,7 @@ function getTitle(mode){
 
 export default function Home({onCreate, onJoin}) {
     const [showModal, setShowModal] = useState(true)
+    const [ai, setAi] = useState(false)
     const [selectedOption, setSelectedOption] = useState(null)
     const [mode, setMode] = useState('DRAFT')
 
@@ -16,7 +17,7 @@ export default function Home({onCreate, onJoin}) {
         setSelectedOption(choice)
         // Simulate game start after choice
         setTimeout(() => {
-            onCreate(choice === 'good', mode)
+            onCreate(choice === 'good', mode, ai)
             setShowModal(false)
         }, 1000)
     }
@@ -107,7 +108,7 @@ export default function Home({onCreate, onJoin}) {
                                         <input
                                             type="checkbox"
                                             checked={mode === 'CLASSIC'}
-                                            onChange={(e) => setMode('CLASSIC')}
+                                            onChange={() => setMode('CLASSIC')}
                                         />
                                         <span>Classic</span>
                                     </label>
@@ -116,7 +117,7 @@ export default function Home({onCreate, onJoin}) {
                                         <input
                                             type="checkbox"
                                             checked={mode === 'VARIANT'}
-                                            onChange={(e) => setMode('VARIANT')}
+                                            onChange={() => setMode('VARIANT')}
                                         />
                                         <span>Variant</span>
                                     </label>
@@ -125,9 +126,18 @@ export default function Home({onCreate, onJoin}) {
                                         <input
                                             type="checkbox"
                                             checked={mode === 'DRAFT'}
-                                            onChange={(e) => setMode('DRAFT')}
+                                            onChange={() => setMode('DRAFT')}
                                         />
                                         <span>Draft</span>
+                                    </label>
+                                    <label
+                                        style={{display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer'}}>
+                                        <input
+                                            type="checkbox"
+                                            checked={ai}
+                                            onChange={(e) => setAi(prev => !prev)}
+                                        />
+                                        <span>Solo</span>
                                     </label>
                                 </div>
                             </div>
