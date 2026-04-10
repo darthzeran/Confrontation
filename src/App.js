@@ -52,13 +52,19 @@ const App = () => {
                 theme="colored"
                 transition={Zoom}
             />
-            
             {!matchId ? (
                 <div>
                     <Home
                         onCreate={async (isEvil, mode, isAI) => {
                             const newMatchId = (mode === 'CLASSIC' ? 'a' : mode === 'VARIANT' ? 'b' : 'c') + generateMatchId()
-                            await navigator.clipboard.writeText(`${newMatchId}${isEvil ? '0' : '1'}`);
+                            if (!isIOS && navigator.clipboard && navigator.clipboard.writeText) {
+                                try{
+                                    await navigator.clipboard.writeText(`${newMatchId}${isEvil ? '0' : '1'}`);
+                                }
+                                catch(e){
+                                    console.log(e)
+                                }
+                            }                            
                             setMatchId(newMatchId)
                             setPlayerId(isEvil ? '1' : '0')
                             setAi(isAI)
