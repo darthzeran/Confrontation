@@ -176,7 +176,7 @@ export const PLACE = {
             G.stopPlacementWarning = true
             Logic.updateHistory(G, 'You must fill your base out first THEN put 1 in each tile on your side of the mountains')
 
-            return INVALID_MOVE
+            return
         }
 
         Logic.addCharacter({G, unitIdToAdd: charToPlace, tileId})
@@ -204,6 +204,7 @@ export const PLACE = {
         G: GState,
         events: any,
         playerID: string,
+        aiPickCards: boolean = false,
     ) => {
         G.messages = []
 
@@ -221,12 +222,14 @@ export const PLACE = {
             if (Logic.getMode(G.matchID) === 'DRAFT') {
                 Logic.declareChars(G)
             }
-            events.setActivePlayers({
-                all: 'specialCards',
-            })
+
+            if(!aiPickCards){
+                events.setActivePlayers({
+                    all: 'specialCards',
+                })
+            }
         }
     },
-
 
 // specialCards
     chooseCardOption: (
@@ -289,6 +292,7 @@ export const MOVE = {
         G: GState,
         events: any,
         ctx: any,
+        isAI: boolean = false,
     ) => {
         G.palantirNames = []
         Logic.hideCharacters(G)
@@ -319,21 +323,25 @@ export const MOVE = {
                 selectedTile: {...selectedTile},
             })
 
+            const goodSpecials = G.players['1'].specialCards
             const fangorn = G.regions['FANGORN']
             const gandalfName = G.characters[GOOD_NAMES.CLASSICGANDALF] ? GOOD_NAMES.CLASSICGANDALF : GOOD_NAMES.VARIANTGANDALF
             const canPlayGandalfWhite = G.characters[gandalfName].defeated
                 && fangorn.currentOccupants.length < fangorn.maxChars
                 && !EVIL_CHARS[fangorn.currentOccupants?.[0]]
+            && goodSpecials.some(c => c.id === 2)
 
             const canPlayKingReveal = Logic.canPlayKingRevealed(G)
+                && goodSpecials.some(c => c.id === 3)
 
+            const evilSpecials = G.players[0].specialCards
             const mordor = G.regions['MORDOR']
             const mordorPpl = mordor.currentOccupants
-            const canPlayRecallMordor = mordorPpl.length !== mordor.maxChars && Boolean(!GOOD_CHARS[mordorPpl?.[0]])
+            const canPlayRecallMordor = mordorPpl.length !== mordor.maxChars && Boolean(!GOOD_CHARS[mordorPpl?.[0]]) && evilSpecials.some(c => c.id === 6)
 
             const canPlayCrebain = Object.values(G.characters).some((c: Character) => {
                 return GOOD_CHARS[c.id] && !c.defeated
-            })
+            }) && evilSpecials.some(c => c.id === 8)
 
             return moves.length > 0 || Boolean(isGood ?
                 (canPlayGandalfWhite || canPlayKingReveal)
@@ -344,6 +352,7 @@ export const MOVE = {
             G.messages = []
             Logic.updateHistory(G, `${!isGood ? 'The Fellowship' : 'Sauron'} wins! - loser out of moves`)
             events.endGame({winner: isGood ? '0' : '1'})
+            return
         } else {
             const winner = Logic.isCaptureBaseGameOver(G)
             if (winner) {
@@ -353,6 +362,7 @@ export const MOVE = {
                         : 'Good won by destroying the ring!',
                 )
                 events.endGame({winner})
+                return
             }
         }
 
@@ -776,7 +786,7 @@ export const BATTLE = {
         // restart battle
         Logic.processPreGoodActionStage({G, events, playerID, ctx})
     },
-    chooseRetreatRegion: (
+    chooseGoodRetreatRegion: (
         G: GState,
         events: any,
         ctx: any,
@@ -1081,7 +1091,6 @@ export const BATTLE = {
                 )
             }
 
-
             Logic.processPostCardActions({G, events, ctx, playerID, skipEvil: false})
         }
     },
@@ -1162,7 +1171,7 @@ export const BATTLE = {
         }
     },
     // mouthCards
-    useMouthChoice: (
+    mouthChoice: (
         G: GState,
         events: any,
         ctx: any,
@@ -1190,7 +1199,7 @@ export const BATTLE = {
 
     },
     // gandalfChoice
-    useGandalfOption: (
+    doGandalfOption: (
         G: GState,
         events: any,
         ctx: any,
