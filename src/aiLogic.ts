@@ -7,8 +7,8 @@ import {
     GOOD_SPECIAL_CARDS
 } from './consts.ts';
 import * as Logic from './logic.ts'
-import {GState} from './types';
-
+import {MOVE, BATTLE} from './moveLogic.ts'
+import {BattleCard, GState, Location} from './types.ts';
 
 export function aiSetup(G: GState) {
     const aiGood = G.aiId === '1'
@@ -167,8 +167,7 @@ export function aiCardsSetup(G: GState, events: any, type: 'default' | number) {
                 full: 'This card can be played at the beginning of a battle, before character texts are resolved. The Fellowship character gains the ability “Immediately retreat sideways or backwards” (replacing the character’s normal text) for the duration of that battle only. The Fellowship player may not play Gwaihir the Windlord in a battle against the Warg. ',
             }
             ]
-        }
-        else {
+        } else {
             G.players['0'].specialCards = [{
                 id: 6,
                 title: 'Recall to Mordor',
@@ -190,35 +189,495 @@ export function aiCardsSetup(G: GState, events: any, type: 'default' | number) {
 }
 
 
-export function evilAIMove({G, events, ctx}){
-    let charId = G.kingRevealed
-    if(!charId){
-        // if crebain, use it
-        const crebainCard = G.players['0'].specialCards.find(card => card.id === 8)
-        if(crebainCard){
-            charId = G.regions['SHIRE'].currentOccupants[Logic.shuffle([0, 1, 2, 3])]
-            Logic.updateHistory(G, `Crebain now spy upon ${GOOD_CHARS[charId].name}`)
-
-            G.characters[charId].permaReveal = true
-
-            G.players['0'].specialCards = G.players['0'].specialCards.filter(card => card.id !== 8)
-            G.evilSpecial = null
-            events.endTurn()
-            return
-        }
-
-        // logic
-        // attack mordor closest enemies, else move furthest units first
-        // BUILD OUT MORE
+export function evilAIMove({G, events, ctx}) {
+    if (G.kingRevealed) {
+        return executeBestMoveForChar({ G, events, charId: G.kingRevealed, isGood: false })
     }
 
-    // once char selected, move them
-    const moves = Logic.generateMoves({
-        G,
-        playerID:G.aiId,
-        selectedTile: Logic.findCharTile(G, charId),
-        selectedChar: Logic.getChar(G, charId)
+    const candidates = buildMoveCandidates(G, false)
+    if (candidates.length === 0) return
+
+    const best = candidates[0]
+    MOVE.chooseCharacterToMove(G, G.aiId, best.charId, best.fromTileId)
+    MOVE.chooseRegionToMove(G, events, G.aiId, best.toTileId)
+
+}
+
+
+/**
+ * Good AI move turn.
+ *
+ * Priority:
+ *   1. Score all possible moves and execute the best one.
+ *      Attacks beat advances; within attacks the weakest enemy is targeted;
+ *      within advances the char furthest forward (closest to Mordor, lowest
+ *      tile ID) moves further.
+ *
+ * Frodo/Sam are treated as last resort — they won't move unless they are the
+ * only option, because exposing the ring-bearer is almost always fatal.
+ */
+export function goodAIMove({ G, events, ctx }: { G: GState; events: any; ctx: any }) {
+    const allCandidates = buildMoveCandidates(G, true)
+    if (allCandidates.length === 0) return
+
+    const ringbearers = new Set([
+        GOOD_NAMES.CLASSICFRODO,
+        GOOD_NAMES.VARIANTFRODO,
+        GOOD_NAMES.CLASSICSAM,
+        GOOD_NAMES.VARIANTSAM,
+    ])
+
+    const safeCandidates = allCandidates.filter(c => !ringbearers.has(c.charId))
+    const best = safeCandidates.length > 0 ? safeCandidates[0] : allCandidates[0]
+
+    MOVE.chooseCharacterToMove(G, G.aiId, best.charId, best.fromTileId)
+    MOVE.chooseRegionToMove(G, events, G.aiId, best.toTileId)
+}
+
+
+export function aiPickCard({ G, events, ctx }: { G: GState; events: any; ctx: any }){
+    const isGood = Logic.isSpecifiedPlayerGood(G.aiId)
+    if(isGood){
+        aiBattleGoodPickCard({ G, events, ctx })
+    }else {
+        aiBattleEvilPickCard({G, events, ctx})
+    }
+}
+
+/**
+ * Pick the best available battle card.
+ *
+ * Priority: highest-value strength card first.
+ * Text cards are used only as a last resort (they score 0).
+ * Magic is only selected when there are discarded cards to spend it on —
+ * otherwise it's inert and wastes the slot.
+ */
+function pickBestCard(G: GState, repick: boolean = false): BattleCard | null {
+    const isGood = Logic.isSpecifiedPlayerGood(G.aiId)
+    const cards = G.players[isGood ? '1' : '0'].cards
+    const hasDiscards = cards.some(c => c.discarded)
+
+    const available = cards.filter(c => {
+        if (c.discarded) return false
+        if (c.title === 'Magic') return hasDiscards
+        if(repick && G.oldGoodCard?.id === c.id) return false
+        return true
     })
 
-    //
+    if (available.length === 0) return null
+
+    return available.sort((a, b) => {
+        const aVal = a.type === 'strength' ? (a.value ?? 0) : 0
+        const bVal = b.type === 'strength' ? (b.value ?? 0) : 0
+        return bVal - aVal
+    })[0]
+}
+
+/**
+ * For the secondary Magic pick: the highest-value already-discarded card
+ * (the one most worth "replaying" with magic).
+ */
+function pickBestDiscardedCard(G: GState, isGood: boolean): BattleCard | null {
+    const cards = G.players[isGood ? '1' : '0'].cards
+    const available = cards.filter(c => c.discarded && c.title !== 'Magic')
+    if (available.length === 0) return null
+    return available.sort((a, b) => (b.value ?? 0) - (a.value ?? 0))[0]
+}
+
+type MoveCandidate = {
+    charId: string
+    fromTileId: string
+    toTileId: string
+    isAttack: boolean
+    priority: number
+}
+
+/**
+ * Score every possible move for a team and return them sorted best-first.
+ *
+ * Scoring rules:
+ *   - Attacks always beat advances: +1000 bonus.
+ *   - Evil advances: prefer high destination tile ID (closer to Shire).
+ *   - Good advances: prefer low destination tile ID (closer to Mordor).
+ *     Implemented by inverting: score = maxTileId - tile.id.
+ *   - Within attacks, weakest target gets an additional tiebreaker bonus
+ *     (lower opponent value → higher bonus, max assumed ≤ 10).
+ */
+function buildMoveCandidates(G: GState, isGood: boolean): MoveCandidate[] {
+    const myChars = isGood ? GOOD_CHARS : EVIL_CHARS
+    const oppChars = isGood ? EVIL_CHARS : GOOD_CHARS
+    const playerId = isGood ? '1' : '0'
+
+    const allTileIds = Object.values(G.regions).map((r: Location) => r.id)
+    const maxTileId = Math.max(...allTileIds)
+
+    const candidates: MoveCandidate[] = []
+
+    Object.keys(myChars).forEach(charId => {
+        const char = G.characters[charId]
+        if (!char || char.defeated || (!isGood && char.permaReveal)) return
+
+        const fromTile = Logic.findCharTile(G, charId)
+        if (!fromTile) return
+
+        const moves = Logic.generateMoves({
+            G,
+            playerID: playerId,
+            selectedChar: Logic.getChar(G, charId),
+            selectedTile: fromTile,
+        })
+
+        moves.forEach(toTileId => {
+            const toTile = G.regions[toTileId]
+            const isAttack = toTile.currentOccupants.some(n => oppChars[n])
+
+            // Directional score: evil prefers high IDs, good prefers low IDs
+            const dirScore = isGood ? (maxTileId - toTile.id) : toTile.id
+
+            // Secondary: within attacks, prefer weaker targets (easier win)
+            let weaknessBonus = 0
+            if (isAttack) {
+                const oppId = toTile.currentOccupants.find(n => oppChars[n])
+                const oppChar = oppId ? G.characters[oppId] : null
+                weaknessBonus = oppChar ? (10 - (oppChar.value ?? 5)) : 0
+            }
+
+            candidates.push({
+                charId,
+                fromTileId: fromTile.title,
+                toTileId,
+                isAttack,
+                priority: (isAttack ? 1000 : 0) + dirScore + weaknessBonus,
+            })
+        })
+    })
+
+    // Descending priority; deterministic tiebreak on charId
+    return candidates.sort((a, b) => b.priority - a.priority || a.charId.localeCompare(b.charId))
+}
+
+/**
+ * Given a specific charId, find its best move and execute it.
+ * Used for King Revealed (forces a specific evil char to move) and any
+ * future forced-move scenarios.
+ */
+function executeBestMoveForChar({
+        G,
+        events,
+        charId,
+        isGood,
+    }: {
+    G: GState
+    events: any
+    charId: string
+    isGood: boolean
+}) {
+    const tile = Logic.findCharTile(G, charId)
+    if (!tile) return
+
+    const playerId = isGood ? '1' : '0'
+    const oppChars = isGood ? EVIL_CHARS : GOOD_CHARS
+    const allTileIds = Object.values(G.regions).map((r: Location) => r.id)
+    const maxTileId = Math.max(...allTileIds)
+
+    const moves = Logic.generateMoves({
+        G,
+        playerID: playerId,
+        selectedChar: Logic.getChar(G, charId),
+        selectedTile: tile,
+    })
+    if (moves.length === 0) return
+
+    const best = moves
+        .map(toTileId => {
+            const toTile = G.regions[toTileId]
+            const isAttack = toTile.currentOccupants.some(n => oppChars[n])
+            const dirScore = isGood ? (maxTileId - toTile.id) : toTile.id
+            return {toTileId, priority: (isAttack ? 1000 : 0) + dirScore}
+        })
+        .sort((a, b) => b.priority - a.priority)[0]
+
+    MOVE.chooseCharacterToMove(G, playerId, charId, tile.title)
+    MOVE.chooseRegionToMove(G, events, playerId, best.toTileId)
+}
+
+
+
+/**
+ * Good AI responds to the goodAction stage.
+ *
+ * Decision priority:
+ *   WINDLORD > RETREAT > POWER-UP > CARD-FREE > SWAP (if outmatched) > FIGHT
+ *
+ * Retreats are always taken — a free escape is better than risking a loss.
+ * SWAP is taken only when the good unit is weaker than the attacker; otherwise
+ * it's better to fight directly.
+ */
+export function aiBattleGoodAction({ G, events, ctx }: { G: GState; events: any; ctx: any }) {
+    const goodActions: string[] = G.goodActions || []
+
+    // Free retreat from Gwaihir — always take it
+    if (goodActions.includes('WINDLORD')) {
+        return BATTLE.chooseGoodAction(G, events, ctx, G.aiId, 'WINDLORD')
+    }
+
+    // Free character retreat — always take it
+    if (goodActions.includes('RETREAT')) {
+        return BATTLE.chooseGoodAction(G, events, ctx, G.aiId, 'RETREAT')
+    }
+
+    // Sam power-up near Frodo — free strength boost, always take it
+    if (goodActions.includes('POWER-UP')) {
+        return BATTLE.chooseGoodAction(G, events, ctx, G.aiId, 'POWER-UP')
+    }
+
+    // Aragorn card-free — forces a raw strength fight; good for Aragorn
+    if (goodActions.includes('CARD-FREE')) {
+        return BATTLE.chooseGoodAction(G, events, ctx, G.aiId, 'CARD-FREE')
+    }
+
+    // Swap (Frodo→Sam or Smeagol) — only if the current good unit is outmatched
+    if (goodActions.includes('SWAP')) {
+        const attackerIsGood = Boolean(GOOD_CHARS[G.attackingChar])
+        const goodUnitId = attackerIsGood ? G.attackingChar : G.defendingChar
+        const evilUnitId = attackerIsGood ? G.defendingChar : G.attackingChar
+        const goodUnit = Logic.getChar(G, goodUnitId)
+        const evilUnit = Logic.getChar(G, evilUnitId)
+        if (goodUnit && evilUnit && evilUnit.value > goodUnit.value) {
+            return BATTLE.chooseGoodAction(G, events, ctx, G.aiId, 'SWAP')
+        }
+    }
+
+    return BATTLE.chooseGoodAction(G, events, ctx, G.aiId, 'FIGHT')
+}
+
+/**
+ * Good AI picks a retreat region.
+ * Prefers the tile deepest into good territory (highest tile ID = furthest from danger).
+ */
+export function aiBattleGoodRetreat({ G, events, ctx }: { G: GState; events: any; ctx: any }) {
+    let moves = G.validMoves || []
+    if (moves.length === 0) {
+        return
+    }
+
+    const best = moves
+        .map(tileId => G.regions[tileId])
+        .sort((a, b) => b.id - a.id)[0]
+
+    // chooseRetreatRegion is the goodRetreat stage move name
+    BATTLE.chooseGoodRetreatRegion(G, events, ctx, G.aiId, best.title)
+}
+
+export function processSmeagolSwap({G, events, ctx}: { G: GState; events: any; ctx: any }){
+    // check grima swap
+    let chars = G.swapOptions || []
+    if(chars.length === 0 || G.defendingChar !== GOOD_NAMES.SMEAGOL){
+        return
+    }
+    let stats = chars.map(charName => ({
+        tile: Logic.findCharTile(G, charName).title,
+        power: Logic.getChar(G, charName).value,
+        name: Logic.getChar(G, charName).id,
+    }))
+    stats = stats.sort((a, b) => b.power - a.power)
+
+    BATTLE.chooseSmeagolSwap(G, events, ctx, G.aiId, stats[0].name, stats[0].tile)
+}
+
+/**
+ * Good AI always uses Gandalf's nearby +1 bonus — a free boost is never bad.
+ */
+export function aiBattleGandalfChoice({ G, events, ctx }: { G: GState; events: any; ctx: any }) {
+    BATTLE.doGandalfOption(G, events, ctx, G.aiId, true)
+}
+
+/**
+ * Good AI picks the highest-value battle card.
+ */
+function aiBattleGoodPickCard({ G, events, ctx }: { G: GState; events: any; ctx: any }) {
+    const card = pickBestCard(G)
+    if (!card) return
+
+    BATTLE.chooseCard(G, events, ctx, G.aiId, card)
+    BATTLE.lockInCard(G, events, ctx, G.aiId)
+}
+
+/**
+ * Good AI is forced to re-pick a card by Saruman.
+ * Same strategy: highest available value.
+ */
+export function aiBattleGoodPickSarumanCard({ G, events, ctx }: { G: GState; events: any; ctx: any }) {
+    const card = pickBestCard(G, true)
+    if (!card) return
+
+    BATTLE.chooseSarumanCard(G, G.aiId, card)
+    BATTLE.lockInSarumanCard(G, events, ctx, G.aiId)
+}
+
+/**
+ * Good AI must choose which enemy to fight on a multi-occupant tile.
+ * Targets the weakest enemy (lowest strength = easiest win).
+ */
+export function aiBattleGoodChooseTarget({ G, events, ctx }: { G: GState; events: any; ctx: any }) {
+    const battleTile = Logic.getTile(G, G.attackedTile)
+    const opponents = battleTile.currentOccupants.filter(n => EVIL_CHARS[n])
+    if (opponents.length === 0) {
+        console.error('no one to attack')
+        return
+    }
+
+    return opponents
+        .map(charId => Logic.getChar(G, charId))
+        .sort((a, b) => (a.value ?? 0) - (b.value ?? 0))[0].id
+}
+
+
+// ─────────────────────────────────────────────
+// BATTLE PHASE — EVIL AI
+// ─────────────────────────────────────────────
+
+/**
+ * Evil AI responds to the badAction stage.
+ *
+ * Decision priority:
+ *   CARD-FREE (Saruman) > RETREAT (only if outmatched, Gollum) > FIGHT
+ */
+export function aiBattleBadAction({ G, events, ctx }: { G: GState; events: any; ctx: any }) {
+    const badActions: string[] = G.badActions || []
+    const attackerIsGood = Boolean(GOOD_CHARS[G.attackingChar])
+    const goodUnitId = attackerIsGood ? G.attackingChar : G.defendingChar
+    const evilUnitId = attackerIsGood ? G.defendingChar : G.attackingChar
+    const goodUnit = Logic.getChar(G, goodUnitId)
+    const evilUnit = Logic.getChar(G, evilUnitId)
+
+    // Classic Saruman: skip cards entirely — always beneficial
+    if (badActions.includes('CARD-FREE') && goodUnit.value <= 4) {
+        return BATTLE.chooseEvilAction(G, events, ctx, G.aiId, 'CARD-FREE')
+    }
+
+    // Gollum retreat — only if the good unit is at least as strong
+    if (badActions.includes('RETREAT')) {
+        if (goodUnit && evilUnit && goodUnit.value >= evilUnit.value) {
+            return BATTLE.chooseEvilAction(G, events, ctx, G.aiId, 'RETREAT')
+        }
+    }
+
+    return BATTLE.chooseEvilAction(G, events, ctx, G.aiId, 'FIGHT')
+}
+
+/**
+ * Evil AI picks a retreat region.
+ * Retreats toward Mordor (lowest tile ID) to preserve board position.
+ */
+export function aiBattleBadRetreat({ G, events, ctx }: { G: GState; events: any; ctx: any }) {
+    const moves = G.validMoves || []
+    if (moves.length === 0) return
+
+    const best = moves
+        .map(tileId => G.regions[tileId])
+        .sort((a, b) => a.id - b.id)[0]
+
+    BATTLE.chooseBadRetreatRegion(G, events, ctx, G.aiId, best.title)
+}
+
+/**
+ * Evil AI picks the highest-value battle card.
+ */
+function aiBattleEvilPickCard({ G, events, ctx }: { G: GState; events: any; ctx: any }) {
+    const card = pickBestCard(G)
+    if (!card) return
+
+    BATTLE.chooseCard(G, events, ctx, G.aiId, card)
+    BATTLE.lockInCard(G, events, ctx, G.aiId)
+}
+
+/**
+ * Evil AI picks the best discarded card to replay via Magic.
+ */
+export function aiBattlePickMagicCard({ G, events, ctx }: { G: GState; events: any; ctx: any }) {
+    const card = pickBestDiscardedCard(G, false)
+    if (!card) return
+
+    BATTLE.chooseMagicCard(G, events, ctx, G.aiId, card)
+    BATTLE.lockInMagicCard(G, events, ctx, G.aiId)
+}
+
+/**
+ * Evil AI (Saruman) decides whether to force good to reselect their card.
+ * Rejects if the good card is a high-value strength card (≥ 3) or a
+ * non-Magic text card — anything that meaningfully threatens the outcome.
+ */
+export function aiBattleEvilSarumanChoice({ G, events, ctx }: { G: GState; events: any; ctx: any }) {
+    const goodCard = G.goodCard
+    if (!goodCard) {
+        return BATTLE.goodReselect(G, events, ctx, G.aiId, false)
+    }
+
+    const isHighValue = goodCard.type === 'strength' && (goodCard.value ?? 0) >= 3
+    const isDangerousText = goodCard.type === 'text' && goodCard.title !== 'Magic'
+
+    BATTLE.goodReselect(G, events, ctx, G.aiId, isHighValue || isDangerousText)
+}
+
+/**
+ * Evil AI resolves the Mouth of Sauron stage.
+ * Switches to the Mouth's +4 only when the current card isn't already winning
+ * AND the +4 would flip the result to a win.
+ */
+export function aiBattleEvilMouthChoice({ G, events, ctx }: { G: GState; events: any; ctx: any }) {
+    const plus4 = G.players['0'].cards?.find?.(c => c.id === 3)
+    if (!plus4) {
+        return BATTLE.mouthChoice(G, events, ctx, G.aiId, false)
+    }
+
+    const attackerIsGood = Boolean(GOOD_CHARS[G.attackingChar])
+    const goodUnitId = attackerIsGood ? G.attackingChar : G.defendingChar
+    const evilUnitId = attackerIsGood ? G.defendingChar : G.attackingChar
+    const goodUnit = Logic.getChar(G, goodUnitId)
+    const evilUnit = Logic.getChar(G, evilUnitId)
+
+    const goodCardValue = G.goodCard?.type === 'strength' ? (G.goodCard.value ?? 0) : 0
+    const goodTotal = (goodUnit?.value ?? 0) + goodCardValue
+
+    const currentEvilCardValue = G.evilCard?.type === 'strength' ? (G.evilCard.value ?? 0) : 0
+    const evilCurrentTotal = (evilUnit?.value ?? 0) + currentEvilCardValue
+    const evilWithMouth = (evilUnit?.value ?? 0) + (plus4.value ?? 0)
+
+    const alreadyWinning = evilCurrentTotal > goodTotal
+    const mouthWins = evilWithMouth > goodTotal
+
+    BATTLE.mouthChoice(G, events, ctx, G.aiId, !alreadyWinning && mouthWins)
+}
+
+/**
+ * Evil AI (Wormtongue) picks a Grima retreat region.
+ * Retreats toward Mordor (lowest tile ID).
+ */
+export function aiBattleEvilGrimaRetreat({ G, events, ctx }: { G: GState; events: any; ctx: any }) {
+    const moves = G.validMoves || []
+    if (moves.length === 0) return
+
+    const best = moves
+        .map(tileId => G.regions[tileId])
+        .sort((a, b) => a.id - b.id)[0]
+
+    BATTLE.chooseGrimaRetreatRegion(G, events, ctx, G.aiId, best.title)
+}
+
+/**
+ * Evil AI must choose which enemy to fight on a multi-occupant tile.
+ * Targets the weakest good character (lowest strength = easiest win).
+ */
+export function aiBattleEvilChooseTarget({ G }: { G: GState }): string {
+    const battleTile = Logic.getTile(G, G.attackedTile)
+    const opponents = battleTile.currentOccupants.filter(n => GOOD_CHARS[n])
+    if (opponents.length === 0) {
+        console.error('no one to fight')
+        return
+    }
+
+    return opponents
+        .map(charId => Logic.getChar(G, charId))
+        .sort((a, b) => (a.value ?? 0) - (b.value ?? 0))[0].id
 }
