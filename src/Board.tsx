@@ -19,6 +19,7 @@ import {
 import {PIECE_IMAGES} from './imgs'
 import {toast} from 'react-toastify'
 import {Character, CharacterMap, GState, Location} from './types';
+import {AiController} from './AiController.tsx';
 
 function getIsGood(id: string) {
     return id === '1'
@@ -57,7 +58,7 @@ export function ConfrontationBoard({ctx, G, moves, playerID, matchID}: {
     ctx: any,
     moves: any
 }) {
-    console.log(G)
+    console.log(G, ctx)
     useEffect(() => {
         if (G.messages?.length > 0) {
             toast.success(<div dangerouslySetInnerHTML={{__html: G.messages.join('<br />')}}/>)
@@ -71,15 +72,18 @@ export function ConfrontationBoard({ctx, G, moves, playerID, matchID}: {
 
     return (
         <div className="app">
-            <header className="header">
-        <span>
-          GAMEID-{' '}
-            <strong>
-            {matchID}
-                {playerID === '0' ? '1' : '0'}
-          </strong>
-        </span>
-            </header>
+            {G.matchID && <AiController G={G} ctx={ctx} moves={moves}/>}
+            {!matchID?.includes('isAI') &&
+                <header className="header">
+                <span>
+                  GAMEID-{' '}
+                    <strong>
+                    {matchID}
+                        {playerID === '0' ? '1' : '0'}
+                  </strong>
+                </span>
+                </header>
+            }
 
             <div className="main-container">
                 <LeftPanel
@@ -419,17 +423,17 @@ function Deaths({G, isGood, ctx}: {
         <>
             <div className={'deathDiv'}>
                 <div className={'deadPpl'}>
-                {deadEnemies.map((name) => {
-                    return (
-                        <img
-                            key={'dead' + name}
-                            className={`deathImg`}
-                            src={PIECE_IMAGES[name]}
-                            alt={'dead-' + name}
-                            title={name}
-                        />
-                    )
-                })}
+                    {deadEnemies.map((name) => {
+                        return (
+                            <img
+                                key={'dead' + name}
+                                className={`deathImg`}
+                                src={PIECE_IMAGES[name]}
+                                alt={'dead-' + name}
+                                title={name}
+                            />
+                        )
+                    })}
                 </div>
                 {aliveEnemies.length < 8 && !ctx?.gameover?.winner && <div className={'aliveDiv'}>
                     {aliveEnemies.map((name) => {
@@ -445,6 +449,7 @@ function Deaths({G, isGood, ctx}: {
                     })}
                 </div>}
             </div>
+
             <div className={'myDeathDiv'}>
                 {deadAllies.map((name) => {
                     return (
@@ -517,7 +522,7 @@ function getTile({phase, G, moves, myTurn, isGood, tile, ctx}: {
                     moves.placeCharacter(tile.title)
                 } else if (phase === 'move') {
                     moves.chooseRegionToMove(tile.title)
-                    if (!window?.location?.href?.includes('localhost')) {
+                    if (!window?.location?.href?.includes('localhost') && !G?.matchID?.includes('isAI')) {
                         fetch('https://confrontationserver.onrender.com/health').catch(e => console.error(e))
                     }
                 } else if (
@@ -538,11 +543,9 @@ function getTile({phase, G, moves, myTurn, isGood, tile, ctx}: {
 
                     const occupant = G.characters[name]
                     const occupantGood = Boolean(goodChars[name])
-                    const canSeeChar =
-                        ((occupantGood && isGood) || (!occupantGood && !isGood) || occupant?.reveal) || gameOver
+                    const canSeeChar = ((occupantGood && isGood) || (!occupantGood && !isGood) || occupant?.reveal) || gameOver
                     const isCrebain = G.evilSpecial === 'CREBAIN' && !isGood && occupantGood
                     const kingRevealed = (G.kingRevealed !== true && G.kingRevealed) || ''
-
 
                     const highlight =
                         canSeeChar ?
