@@ -27,6 +27,10 @@ export function getMode(matchId: string) {
     return matchId?.[0] === 'a' ? 'CLASSIC' : matchId?.[0] === 'b' ? 'VARIANT' : 'DRAFT'
 }
 
+export function isAiGame(matchId: string){
+    return Boolean(matchId?.includes('isAI'))
+}
+
 export function isSpecifiedPlayerGood(id: string) {
     return id === '1'
 }
