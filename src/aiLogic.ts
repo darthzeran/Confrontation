@@ -277,7 +277,8 @@ function pickBestCard(G: GState, repick: boolean = false): BattleCard | null {
  * For the secondary Magic pick: the highest-value already-discarded card
  * (the one most worth "replaying" with magic).
  */
-function pickBestDiscardedCard(G: GState, isGood: boolean): BattleCard | null {
+function pickBestDiscardedCard(G: GState): BattleCard | null {
+    const isGood = Logic.isSpecifiedPlayerGood(G.aiId)
     const cards = G.players[isGood ? '1' : '0'].cards
     const available = cards.filter(c => c.discarded && c.title !== 'Magic')
     if (available.length === 0) return null
@@ -596,7 +597,7 @@ function aiBattleEvilPickCard({ G, events, ctx }: { G: GState; events: any; ctx:
  * Evil AI picks the best discarded card to replay via Magic.
  */
 export function aiBattlePickMagicCard({ G, events, ctx }: { G: GState; events: any; ctx: any }) {
-    const card = pickBestDiscardedCard(G, false)
+    const card = pickBestDiscardedCard(G)
     if (!card) return
 
     BATTLE.chooseMagicCard(G, events, ctx, G.aiId, card)
