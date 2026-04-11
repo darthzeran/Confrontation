@@ -1,6 +1,8 @@
 import {
     EVIL_CARDS,
+    EVIL_NAMES,
     GOOD_CARDS,
+    GOOD_NAMES,
     LOCATIONS,
 } from './consts.ts'
 import * as Logic from './logic.ts'
@@ -645,6 +647,19 @@ export const ConfrontationAI = {
                             G.aiId,
                             charToAttack
                         )
+                    }
+
+                    const stage = ctx.activePlayers?.[G.aiId]
+                    const players = [G.defendingChar, G.attackingChar]
+                    const gandalfInPlay =
+                        players.includes(GOOD_NAMES.CLASSICGANDALF) && !players.includes(EVIL_NAMES.WARG)
+                    if(gandalfInPlay && G.evilCardLocked ){
+                        if( stage=== 'pickCards'){
+                            AiLogic.aiPickCard({G, ctx, events})
+                            if(G.goodPlayMagic){
+                                AiLogic.aiBattlePickMagicCard({G, ctx, events})
+                            }
+                        }
                     }
                 },
                 stages: {
