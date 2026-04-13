@@ -404,6 +404,7 @@ export const ConfrontationAI = {
                 0: {
                     side: 'evil',
                     cards: [...EVIL_CARDS],
+                    specialCards: [],
                     // .map(c=>c.title !== 'Magic' ? {...c, discarded : true} : c)
                     charactersToPlace: [],
                     ambush: true,
@@ -411,6 +412,7 @@ export const ConfrontationAI = {
                 1: {
                     side: 'good',
                     cards: [...GOOD_CARDS],
+                    specialCards: [],
                     charactersToPlace: [],
                 },
             },
@@ -484,6 +486,11 @@ export const ConfrontationAI = {
                     },
                     specialCards: {
                         moves: {
+                            chooseAiCardOption: ({G}: {
+                                G: GState,
+                            }) => {
+                                return AiLogic.chooseAiCardOption(G)
+                            },
                             chooseCardOption: ({G, events}: {
                                 G: GState,
                                 events: any,
