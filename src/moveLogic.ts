@@ -65,6 +65,27 @@ export const PLACE = {
                 players[3],
             ]
             G.goodCharacterToPlace = null
+            
+            // G.regions['RHUDAUR'].currentOccupants = [GOOD_NAMES.VARIANTSAM]
+            // G.regions['EREGION'].currentOccupants = [GOOD_NAMES.SMEAGOL]
+            // G.regions['ENEDWAITH'].currentOccupants = [GOOD_NAMES.LEGOLAS]
+            // G.regions['ARTHEDAIN'].currentOccupants = [GOOD_NAMES.VARIANTGANDALF]
+            // G.regions['CARDOLAN'].currentOccupants = [GOOD_NAMES.VARIANTARAGORN]
+            // G.regions['SHIRE'].currentOccupants = [
+            //     GOOD_NAMES.VARIANTFRODO,
+            //     GOOD_NAMES.GIMLI,
+            //     GOOD_NAMES.TREEBEARD,
+            //     GOOD_NAMES.MERRY,
+            // ]
+            // G.goodCharacterToPlace = null
+            //
+            // const goodTiles = ['RHUDAUR', 'EREGION',
+            //     'ENEDWAITH', 'ARTHEDAIN', 'CARDOLAN', 'SHIRE']
+            // goodTiles.forEach(regName => {
+            //     G.regions[regName].currentOccupants.forEach(charId => {
+            //         G.characters[charId] = GOOD_CHARS[charId]
+            //     })
+            // })
         } else {
             const players = Logic.getRandomChars(G, Logic.getChars({
                 mode: Logic.getMode(G.matchID),
@@ -292,7 +313,6 @@ export const MOVE = {
         G: GState,
         events: any,
         ctx: any,
-        isAI: boolean = false,
     ) => {
         G.palantirNames = []
         Logic.hideCharacters(G)
@@ -876,8 +896,16 @@ export const BATTLE = {
             )
 
             G.badActions = null
+            G.sarumanSkip = true
             // proceed to power
-            Logic.processPowerFight({G, playerID, events, ctx})
+            if (Logic.isGandalfNearby(G)) {
+                events.setActivePlayers({
+                    all: 'gandalfChoice',
+                })
+            } else {
+                // proceed to bad options
+                Logic.processPowerFight({G, playerID, events, ctx})
+            }
         } else {
             G.badState = 'bad action error'
         }
@@ -1171,7 +1199,7 @@ export const BATTLE = {
         }
     },
     // mouthCards
-    mouthChoice: (
+    doMouthChoice: (
         G: GState,
         events: any,
         ctx: any,
@@ -1225,8 +1253,9 @@ export const BATTLE = {
             Logic.updateHistory(G, `Gandalf adds +1 to Good from ${gandalfTile.description}`)
         }
 
-        if (G.aragornSkip) {
+        if (G.aragornSkip || G.sarumanSkip) {
             G.aragornSkip = null
+            G.sarumanSkip = null
             // proceed to power
             Logic.processPowerFight({G, playerID, events, ctx})
         } else {
