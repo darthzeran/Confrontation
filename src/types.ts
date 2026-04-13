@@ -54,6 +54,7 @@ export type Character = {
 export type CharacterMap = Record<string, Character>
 
 export type GState = {
+    aiId?: string,
     matchID?: string,
     badState?: string,
     history: string[],
@@ -111,6 +112,7 @@ export type GState = {
     grimaCallback?: string,
     swapOptions?: string[],
     aragornSkip?: boolean,
+    sarumanSkip?: boolean,
     oldGoodCard?: BattleCard,
 
     // cards
