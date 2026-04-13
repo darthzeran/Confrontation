@@ -383,9 +383,20 @@ export const CLASSIC_GOOD_CHARS: CharacterMap = {
         description: "If Boromir is in a battle, both characters are  defeated immediately. The only exceptions  are the Warg (in which case Boromir’s ability is ignored for that battle) and when Boromir uses the  Tunnel of Moria while the Balrog occupies Caradhras (in  which case Boromir is defeated without a battle)."
     },
 }
+export const CLASSIC_GOOD_NAMES = {
+    CLASSICFRODO: 'CLASSICFRODO',
+    CLASSICSAM: 'CLASSICSAM',
+    PIPPIN: 'PIPPIN',
+    MERRY: 'MERRY',
+    CLASSICGANDALF: 'CLASSICGANDALF',
+    CLASSICARAGORN: 'CLASSICARAGORN',
+    LEGOLAS: 'LEGOLAS',
+    GIMLI: 'GIMLI',
+    BOROMIR: 'BOROMIR',
+}
 export const CLASSIC_EVIL_CHARS: CharacterMap = {
     'BALROG': {
-        name: 'Balrog',
+        name: 'The Balrog',
         id: 'BALROG',
         value: 5,
         classic: true,
@@ -447,6 +458,17 @@ export const CLASSIC_EVIL_CHARS: CharacterMap = {
         classic: true,
         description: "When it comes to playing cards in a battle  with the Cave Troll, the Sauron player’s card  is ignored. The Sauron player must still play  and discard a card, even though that card has no effect in  the battle."
     },
+}
+export const CLASSIC_EVIL_NAMES = {
+    BALROG: "BALROG",
+    SHELOB: "SHELOB",
+    CLASSICWITCHKING: "CLASSICWITCHKING",
+    CLASSICFLYINGNAZGUL: "CLASSICFLYINGNAZGUL",
+    BLACKRIDER: "BLACKRIDER",
+    CLASSICSARUMAN: "CLASSICSARUMAN",
+    CLASSICORCS: "CLASSICORCS",
+    WARG: "WARG",
+    CAVETROLL: "CAVETROLL",
 }
 export const VARIANT_GOOD_CHARS: CharacterMap = {
     'VARIANTFRODO': {
@@ -557,6 +579,17 @@ export const VARIANT_GOOD_CHARS: CharacterMap = {
             "new Fellowship character’s text as if he had been\n" +
             "attacked."
     },
+}
+export const VARIANT_GOOD_NAMES = {
+    VARIANTFRODO: 'VARIANTFRODO',
+    VARIANTSAM: 'VARIANTSAM',
+    ELROND: 'ELROND',
+    VARIANTGANDALF: 'VARIANTGANDALF',
+    VARIANTARAGORN: 'VARIANTARAGORN',
+    TREEBEARD: 'TREEBEARD',
+    FARAMIR: 'FARAMIR',
+    THEODEN: 'THEODEN',
+    SMEAGOL: 'SMEAGOL',
 }
 export const VARIANT_EVIL_CHARS: CharacterMap = {
     'URUKHAI': {
@@ -670,41 +703,7 @@ export const VARIANT_EVIL_CHARS: CharacterMap = {
             "character has already retreated."
     },
 }
-
-const CLASSIC_GOOD_NAMES = {
-    CLASSICFRODO: 'CLASSICFRODO',
-    CLASSICSAM: 'CLASSICSAM',
-    PIPPIN: 'PIPPIN',
-    MERRY: 'MERRY',
-    CLASSICGANDALF: 'CLASSICGANDALF',
-    CLASSICARAGORN: 'CLASSICARAGORN',
-    LEGOLAS: 'LEGOLAS',
-    GIMLI: 'GIMLI',
-    BOROMIR: 'BOROMIR',
-}
-const CLASSIC_EVIL_NAMES = {
-    BALROG: "BALROG",
-    SHELOB: "SHELOB",
-    CLASSICWITCHKING: "CLASSICWITCHKING",
-    CLASSICFLYINGNAZGUL: "CLASSICFLYINGNAZGUL",
-    BLACKRIDER: "BLACKRIDER",
-    CLASSICSARUMAN: "CLASSICSARUMAN",
-    CLASSICORCS: "CLASSICORCS",
-    WARG: "WARG",
-    CAVETROLL: "CAVETROLL",
-}
-const VARIANT_GOOD_NAMES = {
-    VARIANTFRODO: 'VARIANTFRODO',
-    VARIANTSAM: 'VARIANTSAM',
-    ELROND: 'ELROND',
-    VARIANTGANDALF: 'VARIANTGANDALF',
-    VARIANTARAGORN: 'VARIANTARAGORN',
-    TREEBEARD: 'TREEBEARD',
-    FARAMIR: 'FARAMIR',
-    THEODEN: 'THEODEN',
-    SMEAGOL: 'SMEAGOL',
-}
-const VARIANT_EVIL_NAMES = {
+export const VARIANT_EVIL_NAMES = {
     URUKHAI: "URUKHAI",
     VARIANTWITCHKING: "VARIANTWITCHKING",
     VARIANTSARUMAN: "VARIANTSARUMAN",
