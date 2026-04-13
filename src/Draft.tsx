@@ -347,7 +347,7 @@ export const Confrontation = {
                                 ctx: any,
                                 playerID: string
                             }, useMouthAbility: boolean) => {
-                                return BATTLE.useMouthChoice(G, events, ctx, playerID, useMouthAbility)
+                                return BATTLE.doMouthChoice(G, events, ctx, playerID, useMouthAbility)
                             },
                         },
                     },
@@ -533,10 +533,10 @@ export const ConfrontationAI = {
                     if (ctx.currentPlayer === G.aiId) {
                         if (Logic.isSpecifiedPlayerGood(G.aiId)) {
                             // good ai
-                            return AiLogic.goodAIMove({G, events, ctx})
+                            AiLogic.goodAIMove({G, events, ctx})
                         } else {
                             // bad ai
-                            return AiLogic.evilAIMove({G, events, ctx})
+                            AiLogic.evilAIMove({G, events, ctx})
                         }
                     }
 
@@ -876,7 +876,7 @@ export const ConfrontationAI = {
                                 ctx: any,
                                 playerID: string
                             }, useMouthAbility: boolean) => {
-                                return BATTLE.mouthChoice(G, events, ctx, playerID, useMouthAbility)
+                                return BATTLE.doMouthChoice(G, events, ctx, playerID, useMouthAbility)
                             },
                         },
                     },
