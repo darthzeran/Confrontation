@@ -9,6 +9,7 @@ export function AiController({ctx, G, moves}: {
 }) {
     const isGood = G.aiId === '1'
     const phase = ctx.phase
+    const isAIPickSpecials = ctx.activePlayers?.[G.aiId] === 'specialCards' && (G.specialCardsPer || G.specialCardDefault)
     const isAIPickCard = ctx.activePlayers?.[G.aiId] === 'pickCards'
     const isAIPickMagicCard = ctx.activePlayers?.[G.aiId] === 'pickMagicCards'
     const isGoodRetreat = ctx.activePlayers?.[G.aiId] === 'goodRetreat'
@@ -22,9 +23,17 @@ export function AiController({ctx, G, moves}: {
     const isGrimaRetreat = ctx.activePlayers?.[G.aiId] === 'grimaRetreat'
     const isSmeagolSwap = G.defendingChar === 'SMEAGOL' && G.swapOptions?.length > 0
     const foes = Boolean(G.attackingChar && G.defendingChar) ? G.attackingChar + G.defendingChar : false
-
+    
     useEffect(() => {
-        if (phase === 'battle') {
+        if (phase === 'place'){
+            if(!isGood){
+                if (isAIPickSpecials) {
+                    console.log(2)
+                    moves.chooseAiCardOption()
+                }
+            }
+        }
+        else if (phase === 'battle') {
             if (isAIPickCard && foes) {
                 moves.chooseAiCard()
             }
@@ -59,13 +68,11 @@ export function AiController({ctx, G, moves}: {
                     moves.aiMakeGoodReselect()
                 }
             }
-
-
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isGood, phase, isAIPickCard, isAIPickMagicCard, isGoodAction, isBadAction,
         isMouthAction, isGandalfChoiceAction, isGoodRetreat, isBadRetreat, isSarumanReselectAction, isSarumanChoiceAction,
-        isGrimaRetreat, isSmeagolSwap, foes]);
+        isGrimaRetreat, isSmeagolSwap, isAIPickSpecials, foes]);
 
     return
 }
