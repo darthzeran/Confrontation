@@ -133,6 +133,7 @@ export function aiSetup(G: GState) {
     }
 }
 
+
 export function aiCardsSetup(G: GState, events: any, type: 'default' | number) {
     G.messages = []
     const cardsPer = type === 'default' ? 2 : Number(type)
@@ -155,36 +156,41 @@ export function aiCardsSetup(G: GState, events: any, type: 'default' | number) {
         G.chooseSpecials = true
         // chose my specials
         if (Logic.isSpecifiedPlayerGood(G.aiId)) {
-            G.players['1'].specialCards = [{
-                id: 2,
-                title: 'Gandalf the White',
-                description: 'Revive Defeated Gandalf',
-                full: 'This card can be played after the Sauron player has finished his turn. The Fellowship player must skip his entire turn to use this card. When played, the Fellowship player may bring a defeated Gandalf back into play, by placing the Gandalf character in Fangorn. The Fellowship player may not play this card if Fangorn is occupied by any Sauron character, or if two other Fellowship characters are in Fangorn. This card may not be used unless Gandalf has already been defeated',
-            }, {
-                id: 4,
-                title: 'Gwaihir the Windlord',
-                description: 'Allow your character to insantly retreat',
-                full: 'This card can be played at the beginning of a battle, before character texts are resolved. The Fellowship character gains the ability “Immediately retreat sideways or backwards” (replacing the character’s normal text) for the duration of that battle only. The Fellowship player may not play Gwaihir the Windlord in a battle against the Warg. ',
-            }
+            G.players['1'].specialCards = [
+                GOOD_SPECIAL_CARDS[1], GOOD_SPECIAL_CARDS[3]
             ]
         } else {
-            G.players['0'].specialCards = [{
-                id: 6,
-                title: 'Recall to Mordor',
-                description: 'Return an Evil character to Mordor',
-                full: 'This card can be played after the Fellowship player has finished his turn. The Sauron player must skip his entire turn to use this card. When played, the Sauron player may take one of the Sauron characters anywhere on the board and place it back in Mordor. The Sauron player may not do this if Mordor is occupied by any Fellowship characters, or four Sauron characters.',
-            }, {
-                id: 8,
-                title: 'Crebain of Dunland',
-                description: 'Permanently reveal a good character',
-                full: 'This card can be played after the Fellowship player has finished his turn. The Sauron player must skip his entire turn to use this card. When played, the Sauron player may choose and reveal a Fellowship character. That character must remain revealed for the remainder of the game. If Gandalf is chosen, then later defeated, but returned to play with the “Gandalf the White” Special Card, the new Gandalf is no longer affected by the “Crebain of Dunland”.',
-            }
+            G.players['0'].specialCards = [
+                EVIL_SPECIAL_CARDS[1], EVIL_SPECIAL_CARDS[3]
             ]
         }
 
         events.setActivePlayers({
             all: 'specialCards',
         })
+    }
+}
+
+export function chooseAiCardOption(G: GState) {
+    const cardsPer = G.specialCardsPer
+
+    let cardsOrder = []
+    const isGood = Logic.isSpecifiedPlayerGood(G.aiId)
+    if (G.specialCardDefault) {
+        if (isGood) {
+            cardsOrder = [GOOD_SPECIAL_CARDS[1], GOOD_SPECIAL_CARDS[3]]
+        } else {
+            cardsOrder = [EVIL_SPECIAL_CARDS[0], EVIL_SPECIAL_CARDS[3]]
+        }
+    } else {
+        if (isGood) {
+            cardsOrder = [EVIL_SPECIAL_CARDS[2], EVIL_SPECIAL_CARDS[0], EVIL_SPECIAL_CARDS[3], EVIL_SPECIAL_CARDS[1]]
+        } else {
+            cardsOrder = [GOOD_SPECIAL_CARDS[2], GOOD_SPECIAL_CARDS[1], GOOD_SPECIAL_CARDS[3], GOOD_SPECIAL_CARDS[0]]
+        }
+    }
+    for (let i = 0; i < cardsPer; i++) {
+        G.players[G.specialCardDefault ? G.aiId : isGood ? '0' : '1'].specialCards.push(cardsOrder[i])
     }
 }
 
