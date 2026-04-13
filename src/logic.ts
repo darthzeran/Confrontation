@@ -726,6 +726,7 @@ export function startBattleLogic({G, playerID, events, ctx}: {
         G.goodCardLocked = false
         G.evilCardLocked = false
         G.aragornSkip = null
+        G.sarumanSkip = null
 
         // check for win
         const winner = isTakeRingGameOver(G)
@@ -807,6 +808,7 @@ export function endBattleLogic({G, events, ctx}: {
             G.goodCardLocked = false
             G.evilCardLocked = false
             G.aragornSkip = null
+            G.sarumanSkip = null
 
             // track who the next player should be
             G.lastPlayerId = ctx.currentPlayer === '1' ? '0' : '1'
