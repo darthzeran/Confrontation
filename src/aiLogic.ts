@@ -709,13 +709,13 @@ function pickBestDiscardedCard(G: GState): BattleCard | null {
     return available.sort((a, b) => (b.value ?? 0) - (a.value ?? 0))[0]
 }
 
-type MoveCandidate = {
-    charId: string
-    fromTileId: string
-    toTileId: string
-    isAttack: boolean
-    priority: number
-}
+// type MoveCandidate = {
+//     charId: string
+//     fromTileId: string
+//     toTileId: string
+//     isAttack: boolean
+//     priority: number
+// }
 
 /**
  * Score every possible move for a team and return them sorted best-first.
