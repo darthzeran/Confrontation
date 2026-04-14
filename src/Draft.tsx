@@ -9,6 +9,7 @@ import * as Logic from './logic.ts'
 import * as AiLogic from './aiLogic.ts'
 import {PLACE, MOVE, BATTLE} from './moveLogic.ts'
 import {GState, SpecialCard, BattleCard} from './types';
+import {isSpecifiedPlayerGood} from './logic.ts';
 
 export const Confrontation = {
     name: 'Confrontation',
@@ -528,7 +529,7 @@ export const ConfrontationAI = {
                     events: any,
                     ctx: any,
                 }) => {
-                    MOVE.onBegin(G, events, ctx, true)
+                    MOVE.onBegin(G, events, ctx)
 
                     if (ctx.currentPlayer === G.aiId) {
                         if (Logic.isSpecifiedPlayerGood(G.aiId)) {
@@ -660,7 +661,7 @@ export const ConfrontationAI = {
                     const players = [G.defendingChar, G.attackingChar]
                     const gandalfInPlay =
                         players.includes(GOOD_NAMES.CLASSICGANDALF) && !players.includes(EVIL_NAMES.WARG)
-                    if(gandalfInPlay && G.evilCardLocked ){
+                    if(gandalfInPlay && G.evilCardLocked && isSpecifiedPlayerGood(G.aiId)){
                         if( stage=== 'pickCards'){
                             AiLogic.aiPickCard({G, ctx, events})
                             if(G.goodPlayMagic){
@@ -769,6 +770,15 @@ export const ConfrontationAI = {
                                 ctx: any,
                             }) => {
                                 AiLogic.aiPickCard({G, events, ctx})
+
+                                const players = [G.defendingChar, G.attackingChar]
+                                const gandalfInPlay =
+                                    players.includes(GOOD_NAMES.CLASSICGANDALF) && !players.includes(EVIL_NAMES.WARG)
+                                if(gandalfInPlay && !isSpecifiedPlayerGood(G.aiId)){
+                                    if(G.evilPlayMagic){
+                                        AiLogic.aiBattlePickMagicCard({G, ctx, events})
+                                    }
+                                }
                             },
                             chooseCard: ({G, playerID, events, ctx}: {
                                 G: GState,
