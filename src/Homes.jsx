@@ -137,7 +137,7 @@ export default function Home({onCreate, onJoin}) {
                                             checked={ai}
                                             onChange={(e) => setAi(prev => !prev)}
                                         />
-                                        <span>Solo</span>
+                                        <span>AI</span>
                                     </label>
                                 </div>
                             </div>
