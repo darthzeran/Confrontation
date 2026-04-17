@@ -630,7 +630,7 @@ function pickBestCard(G: GState, repick: boolean = false): BattleCard | null {
     const isGood = Logic.isSpecifiedPlayerGood(G.aiId)
     const cards = G.players[isGood ? '1' : '0'].cards
     const hasDiscards = cards.some(c => c.discarded)
-    const diff = rawStrengthDiff(G, isGood)
+    let diff = rawStrengthDiff(G, isGood)
 
     const players = [G.defendingChar, G.attackingChar]
     const gandalfInPlay = isSpecifiedPlayerGood(G.aiId) && players.includes(GOOD_NAMES.CLASSICGANDALF) && !players.includes(EVIL_NAMES.WARG)
