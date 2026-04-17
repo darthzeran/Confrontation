@@ -1034,8 +1034,9 @@ export function processGoodTextCards({G, events, ctx, playerID, evilUsePower}: {
     evilUsePower: boolean
 }) {
     const players = [G.attackingChar, G.defendingChar]
-    const elrondActive = players.includes(GOOD_NAMES.ELROND)
-    const frodoActive = players.includes(GOOD_NAMES.VARIANTFRODO)
+    const wargActive = players.includes(EVIL_NAMES.WARG)
+    const elrondActive = players.includes(GOOD_NAMES.ELROND) && !wargActive
+    const frodoActive = players.includes(GOOD_NAMES.VARIANTFRODO) && !wargActive
     const frodoIgnore = frodoActive && G.evilCard.type === 'text'
     const elrondIgnore = elrondActive && (G.evilCard.title === 'The Eye Of Sauron' || G.evilPlayMagic )
 
@@ -1098,8 +1099,9 @@ export function processPlayedCards({G, events, ctx, playerID}: {
     discardCard({G, isGood: false})
 
     const players = [G.attackingChar, G.defendingChar]
-    const elrondActive = players.includes(GOOD_NAMES.ELROND)
-    const frodoActive = players.includes(GOOD_NAMES.VARIANTFRODO)
+    const wargActive = players.includes(EVIL_NAMES.WARG)
+    const elrondActive = players.includes(GOOD_NAMES.ELROND) && !wargActive
+    const frodoActive = players.includes(GOOD_NAMES.VARIANTFRODO) && !wargActive
     const trollInPlay = players.includes(EVIL_NAMES.CAVETROLL)
     const frodoIgnore = frodoActive && G.evilCard.type === 'text'
     const elrondIgnore = elrondActive && (G.evilCard.title === 'The Eye Of Sauron' || G.evilPlayMagic )
