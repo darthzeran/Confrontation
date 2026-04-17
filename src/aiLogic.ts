@@ -608,7 +608,7 @@ function pickBestCard(G: GState, repick: boolean = false): BattleCard | null {
             .sort((a, b) => (a.value ?? 0) - (b.value ?? 0))  // ascending
 
         // Ideal: smallest card that gets us to +2 lead
-        const efficient = strengthCards.find(c => diff + (c.value ?? 0) >= 2)
+        const efficient = strengthCards.find(c => diff + (c.value ?? 0) >= 4)
         if (efficient) return efficient
 
         // No card reaches +2 — use the largest one available (maximum effort)
