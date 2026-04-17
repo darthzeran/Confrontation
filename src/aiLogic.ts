@@ -639,6 +639,9 @@ function pickBestCard(G: GState, repick: boolean = false): BattleCard | null {
         if(card){
             return card
         }
+        if(G.evilCard?.value){
+            diff += G.evilCard.value
+        }
     }
 
 
