@@ -28,7 +28,6 @@ export function AiController({ctx, G, moves}: {
         if (phase === 'place'){
             if(!isGood){
                 if (isAIPickSpecials) {
-                    console.log(2)
                     moves.chooseAiCardOption()
                 }
             }
