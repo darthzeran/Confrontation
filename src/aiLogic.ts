@@ -955,7 +955,7 @@ export function aiBattleGoodAction({ G, events, ctx }: { G: GState; events: any;
     // Aragorn card-free — forces a raw strength fight; good for Aragorn
     if (goodActions.includes('CARD-FREE')) {
         const aragornAttack = G.attackingChar === GOOD_NAMES.VARIANTARAGORN
-        const enemy = getChar(G, aragornAttack? G.attackingChar: G.defendingChar)
+        const enemy = getChar(G, aragornAttack? G.defendingChar : G.attackingChar)
         const useGandalf = isGandalfNearby(G)
         if(enemy.value <= (useGandalf ? 5 : 4)){
             return BATTLE.chooseGoodAction(G, events, ctx, G.aiId, 'CARD-FREE')
