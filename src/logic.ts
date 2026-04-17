@@ -1036,9 +1036,10 @@ export function processGoodTextCards({G, events, ctx, playerID, evilUsePower}: {
     const players = [G.attackingChar, G.defendingChar]
     const elrondActive = players.includes(GOOD_NAMES.ELROND)
     const frodoActive = players.includes(GOOD_NAMES.VARIANTFRODO)
-    const evilTextNegated = (elrondActive && G.evilCard.title !== 'Retreat (Sideways)' && G.evilCard.type === 'text') || frodoActive
+    const frodoIgnore = frodoActive && G.evilCard.type === 'text'
+    const elrondIgnore = elrondActive && (G.evilCard.title === 'The Eye Of Sauron' || G.evilPlayMagic )
 
-    if (evilTextNegated) {
+    if (frodoIgnore || elrondIgnore) {
         updateHistory(G, `${elrondActive ? 'Elrond' : frodoActive ? 'Frodo' : 'Good'} ignores the Evil card`)
     }
     if (G.goodCard.title === 'Noble Sacrifice') {
@@ -1050,7 +1051,7 @@ export function processGoodTextCards({G, events, ctx, playerID, evilUsePower}: {
             G.history.push('The Elven Cloak negates Evil Power!')
         } else {
             // we played inert magic, check for bad power
-            if (G.evilCard.type === 'strength' && evilUsePower) {
+            if (G.evilCard.type === 'strength' && evilUsePower && !elrondIgnore) {
                 // add good power
                 evilPower = G.goodCard.value
             }
@@ -1068,7 +1069,7 @@ export function processGoodTextCards({G, events, ctx, playerID, evilUsePower}: {
         if (!goodRetreated) {
             updateHistory(G, 'Good has NO escape!')
             let evilPower = 0
-            if (G.evilCard.type === 'strength' && evilUsePower) {
+            if (G.evilCard.type === 'strength' && evilUsePower && !elrondIgnore) {
                 evilPower = G.evilCard.value
             }
 
@@ -1100,9 +1101,10 @@ export function processPlayedCards({G, events, ctx, playerID}: {
     const elrondActive = players.includes(GOOD_NAMES.ELROND)
     const frodoActive = players.includes(GOOD_NAMES.VARIANTFRODO)
     const trollInPlay = players.includes(EVIL_NAMES.CAVETROLL)
-    const evilTextNegated = (elrondActive && G.evilCard.title !== 'Retreat (Sideways)' && G.evilCard.type === 'text') || frodoActive
+    const frodoIgnore = frodoActive && G.evilCard.type === 'text'
+    const elrondIgnore = elrondActive && (G.evilCard.title === 'The Eye Of Sauron' || G.evilPlayMagic )
 
-    if (G.evilCard.type === 'text' && !evilTextNegated && !trollInPlay) {
+    if (G.evilCard.type === 'text' && !frodoIgnore && !elrondIgnore && !trollInPlay) {
         if (G.evilCard.title === 'Retreat (Sideways)') {
             const evilRetreated = processEvilCardRetreat({G, events, ctx, playerID})
             if (!evilRetreated) {
@@ -1163,7 +1165,7 @@ export function processPlayedCards({G, events, ctx, playerID}: {
     } else if (G.goodCard.type === 'text') {
         processGoodTextCards({G, events, ctx, playerID, evilUsePower: !trollInPlay})
     } else {
-        if (evilTextNegated) {
+        if (frodoIgnore || elrondIgnore) {
             updateHistory(G, `${elrondActive ? 'Elrond' : frodoActive ? 'Frodo' : 'Good'} ignores the Evil card`)
         }
         let goodPower = 0
@@ -1172,7 +1174,7 @@ export function processPlayedCards({G, events, ctx, playerID}: {
         if (G.goodCard.type === 'strength') {
             goodPower = G.goodCard.value
         }
-        if (G.evilCard.type === 'strength' && !trollInPlay) {
+        if (G.evilCard.type === 'strength' && !trollInPlay && !elrondIgnore) {
             evilPower = G.evilCard.value
         }
 
