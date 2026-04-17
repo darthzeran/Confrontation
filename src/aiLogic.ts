@@ -9,7 +9,7 @@ import {
 import * as Logic from './logic.ts'
 import {MOVE, BATTLE} from './moveLogic.ts'
 import {BattleCard, GState, Location} from './types.ts';
-import {findCharTile, getChar, isGandalfNearby} from './logic.ts';
+import {findCharTile, getChar, isGandalfNearby, isSpecifiedPlayerGood} from './logic.ts';
 
 
 // Tile the Balrog must reach and hold
@@ -568,6 +568,56 @@ export function aiPickCard({ G, events, ctx }: { G: GState; events: any; ctx: an
     }
 }
 
+function gandalfCheat(G: GState): BattleCard | null{
+    const players = [G.defendingChar, G.attackingChar]
+    const enemy = G.defendingChar === GOOD_NAMES.CLASSICGANDALF ? G.defendingChar : G.attackingChar
+    const evilCard = G.evilCard
+    let canUseMagic = false
+    const goodCardDeck = G.players['1'].cards
+    const discard = []
+    const cards = []
+    goodCardDeck.forEach(card =>{
+        if(card.discarded){
+            discard.push(card)
+        }
+        else{
+            if(card.title === CARD_MAGIC){
+                canUseMagic = true
+            }
+            cards.push(card)
+        }
+    })
+    if(players.includes(EVIL_NAMES.CAVETROLL)){
+        let five = cards.find(c => c?.value === 5)
+        if(five){
+            return five
+        }
+        if(canUseMagic){
+            return cards.find(c => c?.title === CARD_MAGIC)
+        }
+        let noble = cards.find(c => c?.title === CARD_NOBLE_SACRIFICE)
+        if(noble){
+            return noble
+        }
+        if(canUseMagic){
+            return cards.find(c => c?.title === CARD_MAGIC)
+        }
+
+        return null
+    }
+
+    if(evilCard?.title === CARD_EYE_OF_SAURON){
+        const diff = enemy.value - 5
+        if(diff > -1){
+            return cards.find(c => c?.value === diff + 1) || cards.find(c => c?.value === diff + 2) || cards.find(c => c?.value === diff + 3) || cards.find(c => c?.title === CARD_MAGIC)
+        }
+        return cards.find(c => c?.value === 1) || cards.find(c => c?.value === 2) || cards.find(c => c?.value === 3)
+    }
+    if(evilCard?.title === 'Retreat (Sideways)'){
+        return cards.find(c => c?.value === 1) || cards.find(c => c?.value === 2) || cards.find(c => c?.value === 3) || cards.find(c => c?.title === CARD_MAGIC)
+    }
+}
+
 /**
  * Pick the best available battle card.
  *
@@ -581,6 +631,16 @@ function pickBestCard(G: GState, repick: boolean = false): BattleCard | null {
     const cards = G.players[isGood ? '1' : '0'].cards
     const hasDiscards = cards.some(c => c.discarded)
     const diff = rawStrengthDiff(G, isGood)
+
+    const players = [G.defendingChar, G.attackingChar]
+    const gandalfInPlay = isSpecifiedPlayerGood(G.aiId) && players.includes(GOOD_NAMES.CLASSICGANDALF) && !players.includes(EVIL_NAMES.WARG)
+    if(gandalfInPlay){
+        const card = gandalfCheat(G)
+        if(card){
+            return card
+        }
+    }
+
 
     const available = cards.filter(c => {
         if (c.discarded) return false
