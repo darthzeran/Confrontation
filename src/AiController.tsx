@@ -12,6 +12,8 @@ export function AiController({ctx, G, moves}: {
     const isAIPickSpecials = ctx.activePlayers?.[G.aiId] === 'specialCards' && (G.specialCardsPer || G.specialCardDefault)
     const isAIPickCard = ctx.activePlayers?.[G.aiId] === 'pickCards'
     const isAIPickMagicCard = ctx.activePlayers?.[G.aiId] === 'pickMagicCards'
+    const goodCanPickMagic = G.goodCard?.title === 'Magic' && G.evilCardLocked
+    // const evilCanPickMagic = G.evilCard?.title === 'Magic' && G.goodCardLocked
     const isGoodRetreat = ctx.activePlayers?.[G.aiId] === 'goodRetreat'
     const isBadRetreat = ctx.activePlayers?.[G.aiId] === 'badRetreat'
     const isGoodAction = ctx.activePlayers?.[G.aiId] === 'goodAction'
@@ -23,7 +25,7 @@ export function AiController({ctx, G, moves}: {
     const isGrimaRetreat = ctx.activePlayers?.[G.aiId] === 'grimaRetreat'
     const isSmeagolSwap = G.defendingChar === 'SMEAGOL' && G.swapOptions?.length > 0
     const foes = Boolean(G.attackingChar && G.defendingChar) ? G.attackingChar + G.defendingChar : false
-    
+
     useEffect(() => {
         if (phase === 'place'){
             if(!isGood){
@@ -37,7 +39,7 @@ export function AiController({ctx, G, moves}: {
                 moves.chooseAiCard()
             }
             if (isGood) {
-                if (isAIPickMagicCard && G.goodCard?.title === 'Magic') {
+                if (isAIPickMagicCard && goodCanPickMagic) {
                     moves.chooseAiMagicCard()
                 } else if (isGoodAction) {
                     moves.aiChooseGoodAction()
@@ -71,7 +73,7 @@ export function AiController({ctx, G, moves}: {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isGood, phase, isAIPickCard, isAIPickMagicCard, isGoodAction, isBadAction,
         isMouthAction, isGandalfChoiceAction, isGoodRetreat, isBadRetreat, isSarumanReselectAction, isSarumanChoiceAction,
-        isGrimaRetreat, isSmeagolSwap, isAIPickSpecials, foes]);
+        isGrimaRetreat, isSmeagolSwap, isAIPickSpecials, goodCanPickMagic, foes]);
 
     return
 }
