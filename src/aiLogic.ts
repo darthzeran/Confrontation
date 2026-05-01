@@ -157,6 +157,9 @@ function trySentinelFill(G: GState, events: any): boolean {
         // Find a Mordor occupant that can move to this tile
         const mordorOccupants = G.regions['MORDOR'].currentOccupants
             .filter(charId => {
+                if(!EVIL_CHARS[charId]){
+                    return false
+                }
                 const moves = Logic.generateMoves({
                     G,
                     playerID: G.aiId,
@@ -500,7 +503,7 @@ export function evilAIMove({G, events, ctx}) {
     const recallMordorCard = G.players['0'].specialCards.find(card => card.id === 6)
     if(recallMordorCard && aliveChars.length === 1){
         const lastTile = findCharTile(G, aliveChars[0])
-        if(lastTile.title === 'SHIRE'){
+        if(lastTile.title !== 'MORDOR'){
             G.evilSpecial = 'MORDORRECALL'
             MOVE.mordorRecall(G, events, G.aiId, aliveChars[0], lastTile.title)
             return
