@@ -649,10 +649,10 @@ function pickBestCard(G: GState, repick: boolean = false): BattleCard | null {
 
 
     const available = cards.filter(c => {
-        if (c.discarded) return false
-        if (c.title === 'Magic') return hasDiscards
-        if(repick && G.oldGoodCard?.id === c.id) return false
-        return true
+            if (c.discarded) return false
+            if(repick && G.oldGoodCard?.id === c.id) return false
+            if (c.title === 'Magic') return hasDiscards
+            return true
     })
 
     if (available.length === 0) return null
@@ -1101,7 +1101,10 @@ function aiBattleGoodPickCard({ G, events, ctx }: { G: GState; events: any; ctx:
  */
 export function aiBattleGoodPickSarumanCard({ G, events, ctx }: { G: GState; events: any; ctx: any }) {
     const card = pickBestCard(G, true)
-    if (!card) return
+    if (!card) {
+        console.error('Saruman reselect card not found')
+        return
+    }
 
     BATTLE.chooseSarumanCard(G, G.aiId, card)
     BATTLE.lockInSarumanCard(G, events, ctx, G.aiId)
