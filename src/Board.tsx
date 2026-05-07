@@ -58,7 +58,7 @@ export function ConfrontationBoard({ctx, G, moves, playerID, matchID}: {
     ctx: any,
     moves: any
 }) {
-    console.log(G, ctx)
+    console.log(G)
     useEffect(() => {
         if (G.messages?.length > 0) {
             toast.success(<div dangerouslySetInnerHTML={{__html: G.messages.join('<br />')}}/>)
@@ -950,7 +950,7 @@ function LeftBattlePanel({iAmGood, playerID, G, moves, ctx, myTurn}: {
                         className={'goodActionBtn'}
                         onClick={() => moves.useMouthChoice(true)}
                     >
-                        Replace your card with +4
+                        Replace your {iAmGood ? goodCardDetails : evilCardDetails } with +4
                     </button>
                     <button
                         className={'goodActionBtn'}
