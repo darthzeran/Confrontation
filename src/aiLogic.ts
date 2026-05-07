@@ -1100,13 +1100,17 @@ function aiBattleGoodPickCard({ G, events, ctx }: { G: GState; events: any; ctx:
  * Same strategy: highest available value.
  */
 export function aiBattleGoodPickSarumanCard({ G, events, ctx }: { G: GState; events: any; ctx: any }) {
-    const card = pickBestCard(G, true)
+    let card = pickBestCard(G, true)
     if (!card) {
         console.error('Saruman reselect card not found')
         return
     }
 
     BATTLE.chooseSarumanCard(G, G.aiId, card)
+    if(card?.title === 'Magic'){
+        card = pickBestDiscardedCard(G)
+        BATTLE.chooseSarumanCard(G, G.aiId, card)
+    }
     BATTLE.lockInSarumanCard(G, events, ctx, G.aiId)
 }
 
