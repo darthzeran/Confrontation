@@ -73,17 +73,17 @@ export function ConfrontationBoard({ctx, G, moves, playerID, matchID}: {
     return (
         <div className="app">
             {G.matchID && <AiController G={G} ctx={ctx} moves={moves}/>}
-            {!matchID?.includes('isAI') &&
-                <header className="header">
-                <span>
-                  GAMEID-{' '}
-                    <strong>
-                    {matchID}
-                        {playerID === '0' ? '1' : '0'}
-                  </strong>
-                </span>
-                </header>
-            }
+            <header className="header">
+                {!matchID?.includes('isAI') &&
+                    <span>
+                      GAMEID-{' '}
+                        <strong>
+                        {matchID}
+                            {playerID === '0' ? '1' : '0'}
+                      </strong>
+                    </span>
+                }
+            </header>
 
             <div className="main-container">
                 <LeftPanel
