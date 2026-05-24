@@ -1304,6 +1304,12 @@ export const BATTLE = {
         playerID: string,
         charId: string
     ) => {
+        const isGood = Logic.isSpecifiedPlayerGood(playerID)
+        const charList = isGood ? EVIL_CHARS : GOOD_CHARS
+        if (!charList[charId]) {
+            return INVALID_MOVE
+        }
+
         const battleTile = Logic.getTile(G, G.attackedTile)
         const attacker = Logic.getChar(G, G.attackingChar)
         G.defendingChar = charId
