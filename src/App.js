@@ -19,7 +19,7 @@ const ConfrontationDraftClient = Client({
     multiplayer: SocketIO({
         server: isProd ? 'https://confrontationserver.onrender.com' : 'localhost:1234',
     }),
-    loading: () => <div>What are the odds this DRAFT lags out and fails?...</div>
+    loading: () => <div>Server spinning up. Refresh if impatient.</div>
 })
 
 const ConfrontationAIClient = Client({
