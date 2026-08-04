@@ -1,5 +1,6 @@
 import {useState} from 'react'
 import Home from './Homes'
+import Loading from './Loading'
 import {ToastContainer, Zoom} from 'react-toastify';
 
 import {Client} from 'boardgame.io/react'
@@ -19,8 +20,9 @@ const ConfrontationDraftClient = Client({
     multiplayer: SocketIO({
         server: isProd ? 'https://confrontationserver.onrender.com' : 'localhost:1234',
     }),
-    loading: () => <div>Server spinning up. Refresh if impatient.</div>
+    loading: () => <Loading />
 })
+// Server spinning up. Refresh if impatient
 
 const ConfrontationAIClient = Client({
     game: ConfrontationAI,
