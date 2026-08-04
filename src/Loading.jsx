@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import './Loading.scss'
+import './Loading.css'
 
 const DEFAULT_MESSAGES = [
   'Reading the strategy scrolls of Minas Arnor',
