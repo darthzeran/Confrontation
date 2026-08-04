@@ -1,0 +1,342 @@
+:root {
+  --journey-sky-top: #11100d;
+  --journey-sky-bottom: #292319;
+  --journey-mist: rgba(210, 194, 155, 0.12);
+  --journey-ground: #090806;
+  --journey-text: #d8c79d;
+  --journey-text-muted: #9e9277;
+}
+
+.journey-loading-screen,
+.journey-loading-screen * {
+  box-sizing: border-box;
+}
+
+.journey-loading-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+
+  display: grid;
+  grid-template-rows: 1fr auto;
+
+  width: 100%;
+  height: 100%;
+  min-height: 100dvh;
+  overflow: hidden;
+
+  color: var(--journey-text);
+  font-family: Georgia, 'Times New Roman', serif;
+
+  background: linear-gradient(
+                  to bottom,
+                  var(--journey-sky-top) 0%,
+                  var(--journey-sky-bottom) 68%,
+                  #15120d 100%
+  );
+
+  isolation: isolate;
+}
+
+.journey-loading-screen::before {
+  content: '';
+
+  position: absolute;
+  inset: 0;
+  z-index: -3;
+
+  opacity: 0.55;
+
+  background: radial-gradient(
+                  ellipse at 25% 62%,
+                  var(--journey-mist),
+                  transparent 38%
+  ),
+  radial-gradient(
+                  ellipse at 78% 48%,
+                  rgba(195, 185, 155, 0.08),
+                  transparent 33%
+  );
+}
+
+.journey-loading-moon {
+  position: absolute;
+  top: 9vh;
+  right: 12vw;
+  z-index: -2;
+
+  width: clamp(38px, 5vw, 76px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+
+  opacity: 0.35;
+  background: #dfd3ae;
+
+  box-shadow: 0 0 30px rgba(223, 211, 174, 0.12);
+}
+
+.journey-loading-mountains {
+  position: absolute;
+  right: -5vw;
+  bottom: 20vh;
+  z-index: -2;
+
+  width: 110vw;
+  height: 28vh;
+
+  opacity: 0.62;
+  background: #15130f;
+
+  clip-path: polygon(
+                  0 72%,
+                  8% 64%,
+                  16% 68%,
+                  25% 55%,
+                  34% 61%,
+                  43% 48%,
+                  52% 58%,
+                  62% 44%,
+                  72% 54%,
+                  82% 46%,
+                  91% 59%,
+                  100% 50%,
+                  100% 100%,
+                  0 100%
+  );
+}
+
+.journey-loading-ground {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: -1;
+
+  height: 30vh;
+  background: var(--journey-ground);
+
+  clip-path: polygon(
+                  0 34%,
+                  14% 29%,
+                  27% 38%,
+                  42% 25%,
+                  58% 36%,
+                  75% 22%,
+                  100% 32%,
+                  100% 100%,
+                  0 100%
+  );
+}
+
+.journey-loading-area {
+  position: relative;
+  min-height: 0;
+}
+
+
+.scene {
+  position: absolute;
+  bottom: 0;
+  width: 100vw;
+}
+
+.scene svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.fellowship {
+  transform-box: fill-box;
+  animation: lotr-march 13s ease-in-out infinite;
+}
+
+@keyframes lotr-march {
+  0% {
+    transform: translateX(-30px);
+  }
+  50% {
+    transform: translateX(175px);
+  }
+  100% {
+    transform: translateX(-30px);
+  }
+}
+
+.walker {
+  transform-box: fill-box;
+  transform-origin: bottom center;
+  animation: lotr-bob .9s ease-in-out infinite;
+}
+
+@keyframes lotr-bob {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.walker:nth-child(1) {
+  animation-delay: -.05s
+}
+
+.walker:nth-child(2) {
+  animation-delay: -.35s
+}
+
+.walker:nth-child(3) {
+  animation-delay: -.60s
+}
+
+.walker:nth-child(4) {
+  animation-delay: -.15s
+}
+
+.walker:nth-child(5) {
+  animation-delay: -.45s
+}
+
+.walker:nth-child(6) {
+  animation-delay: -.75s
+}
+
+.walker:nth-child(7) {
+  animation-delay: -.25s
+}
+
+.walker:nth-child(8) {
+  animation-delay: -.55s
+}
+
+.walker:nth-child(9) {
+  animation-delay: -.85s
+}
+
+.journey-loading-copy {
+  min-height: 24vh;
+
+  padding: 3vh 24px max(28px, env(safe-area-inset-bottom));
+
+  text-align: center;
+
+  background: linear-gradient(
+                  to bottom,
+                  transparent,
+                  rgba(0, 0, 0, 0.34) 30%,
+                  rgba(0, 0, 0, 0.68)
+  );
+}
+
+.journey-loading-status {
+  min-height: 1.5em;
+  margin: 0;
+
+  font-size: clamp(17px, 2.3vw, 26px);
+  letter-spacing: 0.055em;
+
+  text-shadow: 0 2px 5px #000;
+
+  transition: opacity 300ms ease,
+  transform 300ms ease;
+}
+
+.journey-loading-status-changing {
+  opacity: 0;
+  transform: translateY(5px);
+}
+
+.journey-loading-dots {
+  display: inline-block;
+  width: 1.5em;
+  text-align: left;
+}
+
+.journey-loading-progress {
+  position: relative;
+
+  width: min(340px, 72vw);
+  height: 2px;
+  margin: 22px auto 0;
+
+  overflow: hidden;
+  background: rgba(216, 199, 157, 0.16);
+}
+
+.journey-loading-progress-bar {
+  height: 100%;
+
+  background: var(--journey-text-muted);
+
+  transition: width 200ms linear;
+}
+
+.journey-loading-progress-indeterminate
+.journey-loading-progress-bar {
+  width: 35%;
+
+  animation: journey-progress 1.8s ease-in-out infinite;
+}
+
+@keyframes journey-travel {
+  from {
+    transform: translateX(calc(50vw - 15px));
+  }
+
+  to {
+    transform: translateX(calc(50vw + 105px));
+  }
+}
+
+@keyframes journey-step {
+  from {
+    transform: translateY(0) rotate(-1deg);
+  }
+
+  to {
+    transform: translateY(-4px) rotate(1deg);
+  }
+}
+
+@keyframes journey-progress {
+  from {
+    transform: translateX(-110%);
+  }
+
+  to {
+    transform: translateX(390%);
+  }
+}
+
+@media (max-width: 550px) {
+  .journey-loading-party {
+    left: -345px;
+
+    width: 315px;
+    height: 145px;
+  }
+
+  @keyframes journey-travel {
+    from {
+      transform: translateX(calc(50vw - 12px));
+    }
+
+    to {
+      transform: translateX(calc(50vw + 60px));
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .journey-loading-party,
+  .journey-traveler,
+  .journey-loading-progress-bar {
+    animation: none;
+  }
+
+  .journey-loading-party {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
